@@ -5,7 +5,9 @@
   - always in this browser (localStorage),
   - and in the artifact database (doc "answers/main") when published
     with capabilities {db: {}, downloads: true}.
-  The review screen copies all answers as text, or saves a .json file.
+  The review screen opens an email to SEND_TO with the answers already in it
+  (mailto link). A mailto link can do nothing in some viewers, so the screen
+  also copies all answers as text, or saves a .json file.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1249,10 +1251,11 @@ function valueText(q, lang) {
   }
 }
 
-function exportText() {
+function exportText(forMail) {
   var lines = ["DAVE & CO — " + (S.lang === "fr" ? "Réponses du questionnaire" : "Questionnaire answers"),
-    (S.lang === "fr" ? "À envoyer à : " : "Send to: ") + SEND_TO,
-    new Date(S.updatedAt || Date.now()).toLocaleString(S.lang === "fr" ? "fr-CA" : "en-CA"), ""];
+    forMail ? null : (S.lang === "fr" ? "À envoyer à : " : "Send to: ") + SEND_TO,
+    new Date(S.updatedAt || Date.now()).toLocaleString(S.lang === "fr" ? "fr-CA" : "en-CA"), ""]
+    .filter(function (l) { return l != null; });
   var vis = visible(), last = null;
   vis.forEach(function (q) {
     if (q.section !== last) { lines.push("", "## " + L(SECTIONS[q.section])); last = q.section; }
@@ -1271,6 +1274,46 @@ function exportJson() {
     out.answers[q.id] = { status: status(q), fr: valueText(q, "fr"), en: valueText(q, "en"), raw: a };
   });
   return JSON.stringify(out, null, 2);
+}
+
+/* Short form for the email link: one line per question. A sample text is named by its number. */
+function compactValue(q) {
+  var a = S.answers[q.id] || {};
+  if (a.hidden) return "hidden";
+  if (!filled(q)) return "-";
+  var v = a.value != null ? a.value : q.def;
+  var one = function (s) { return String(s).trim().replace(/\s*\n\s*/g, " / "); };
+  switch (q.type) {
+    case "multi": return (Array.isArray(v) ? v : q.options).join(", ");
+    case "pick": return typeof a.choice === "number" && !a.edited
+      ? "sample " + (a.choice + 1) : "custom (" + (a.lang || S.lang) + "): " + one(a.text);
+    case "fields": return q.fields.map(function (f) { return v[f.k] ? f.k + "=" + one(v[f.k]) : null; }).filter(Boolean).join("; ");
+    case "choice": return v + (q.extra && a.extra && a.extra[q.extra.k] ? "; " + q.extra.k + "=" + one(a.extra[q.extra.k]) : "");
+    case "reviews": return v.filter(function (r) { return r.text && r.text.trim(); }).map(function (r) {
+      return "\"" + one(r.text) + "\" " + one(r.who || "") + (r.ok ? " [permission ok]" : " [permission to confirm]");
+    }).join(" | ");
+    default: return one(v);
+  }
+}
+
+/* Email link with subject and body filled in. Some mail apps cut a long link,
+   so a long body changes to the short form. The last line shows the body is complete. */
+var MAIL_MAX = 1900;
+function mailHref() {
+  var name = String((S.answers.bizName && S.answers.bizName.value) || "Dave & co").trim();
+  var subject = (S.lang === "fr" ? "Réponses du questionnaire - " : "Questionnaire answers - ") + name;
+  function link(body) {
+    return "mailto:" + SEND_TO + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body.replace(/\n/g, "\r\n"));
+  }
+  var full = link(exportText(true) + "\n\n[" + (S.lang === "fr" ? "fin des réponses" : "end of answers") + "]");
+  if (full.length <= MAIL_MAX) return full;
+  var lines = ["DAVE & CO - questionnaire (short form)"];
+  visible().forEach(function (q) { lines.push(q.id + ": " + compactValue(q)); });
+  return link(lines.join("\n") + "\n[end of answers]");
+}
+function mailLink() {
+  return h("a", { class: "btn primary", href: mailHref(), target: "_blank", rel: "noopener",
+    text: L({ fr: "Ouvrir mon courriel", en: "Open my email" }) });
 }
 
 function copyText(text, box, okMsg) {
@@ -1316,7 +1359,7 @@ function renderReview(vis) {
   var box = h("textarea", { id: "export-text", readonly: true, rows: 8 });
   box.value = txt;
   var btns = h("div", { class: "btns" }, [
-    h("button", { class: "btn primary", type: "button", text: S.lang === "fr" ? "Copier les réponses" : "Copy the answers",
+    h("button", { class: "btn quiet", type: "button", text: S.lang === "fr" ? "Copier les réponses" : "Copy the answers",
       onclick: function () { copyText(exportText(), box); } })
   ]);
   if (downloads) {
@@ -1325,9 +1368,11 @@ function renderReview(vis) {
   }
   screen.appendChild(h("div", { class: "export" }, [
     h("h2", { text: S.lang === "fr" ? "Envoyer vos réponses" : "Send your answers" }),
-    h("p", { text: cloudOk
-      ? (S.lang === "fr" ? "Vos réponses sont déjà enregistrées en ligne. Vous pouvez aussi les copier et les envoyer par courriel." : "Your answers are already saved online. You can also copy them and send them by email.")
-      : (S.lang === "fr" ? "1. Touchez « Copier les réponses ». 2. Collez-les dans un courriel. 3. Envoyez le courriel à cette adresse :" : "1. Tap \u201cCopy the answers\u201d. 2. Paste them in an email. 3. Send the email to this address:") }),
+    h("p", { text: L({ fr: "1. Touchez « Ouvrir mon courriel ». Un courriel s'ouvre avec vos réponses déjà écrites. 2. Touchez Envoyer dans ce courriel.",
+      en: "1. Tap \u201cOpen my email\u201d. An email opens with your answers already in it. 2. Tap Send in that email." }) }),
+    h("div", { class: "btns" }, [mailLink()]),
+    h("p", { text: L({ fr: "Rien ne s'ouvre ? Copiez les réponses, collez-les dans un courriel et envoyez-le à cette adresse :",
+      en: "Nothing opens? Copy the answers, paste them in an email, and send it to this address:" }) }),
     h("div", { class: "send-to" }, [
       h("span", { class: "send-addr", text: SEND_TO }),
       h("button", { class: "btn quiet", type: "button", text: S.lang === "fr" ? "Copier l'adresse" : "Copy address",
@@ -1340,8 +1385,7 @@ function renderReview(vis) {
   var inner = h("div", { class: "bar-inner" }, [h("div", { class: "bar-main" }, [
     h("button", { class: "btn icon quiet", type: "button", "aria-label": L(UI.back), html: ICON.back,
       onclick: function () { S.pos = visible().length - 1; save(); render(); scrollTop(); } }),
-    h("button", { class: "btn primary", type: "button", text: S.lang === "fr" ? "Copier les réponses" : "Copy the answers",
-      onclick: function () { copyText(exportText(), box); } })
+    mailLink()
   ])]);
   bar.appendChild(inner);
 }
