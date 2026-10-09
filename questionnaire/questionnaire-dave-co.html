@@ -1,0 +1,1323 @@
+<title>Questionnaire Dave &amp; co</title>
+<!--
+  Questionnaire to fill the Dave & co website (index.html, en/index.html).
+  One question per screen. Answers save at each step:
+  - always in this browser (localStorage),
+  - and in the artifact database (doc "answers/main") when published
+    with capabilities {db: {}, downloads: true}.
+  The review screen copies all answers as text, or saves a .json file.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&family=Libre+Caslon+Display&display=swap">
+<style>
+/* Layout: one narrow column, one question per screen, sticky progress on top, thumb-reach action bar at the bottom. */
+:root {
+  --bg: #f6f2ee;          /* mist */
+  --surface: #fffdfb;     /* white */
+  --sunk: #ece4dc;        /* sand */
+  --ink: #2f221d;         /* espresso */
+  --ink-soft: #62514a;
+  --line: rgb(47 34 29 / 0.16);
+  --accent: #2f221d;
+  --accent-hover: #5b463c;/* bark */
+  --on-accent: #fffdfb;
+  --law: #8a6c5d;         /* taupe */
+  --on-law: #fffdfb;
+  --error: #a3402c;
+  --ok: #4f6b3c;
+  --scrim: rgb(31 22 19 / 0.45);
+  --display: "Libre Caslon Display", Didot, "Bodoni 72", Georgia, serif;
+  --body: "Albert Sans", "Helvetica Neue", Arial, sans-serif;
+  --r-l: 28px;
+  --r-m: 20px;
+  --r-s: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1f1613; --surface: #2f221d; --sunk: #3a2c26; --ink: #ece4dc; --ink-soft: #d9cbc0;
+    --line: rgb(255 253 251 / 0.2); --accent: #ece4dc; --accent-hover: #ddd1c5; --on-accent: #2f221d;
+    --law: #b39686; --on-law: #1f1613; --error: #e39a86; --ok: #a9c48f; --scrim: rgb(0 0 0 / 0.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1f1613; --surface: #2f221d; --sunk: #3a2c26; --ink: #ece4dc; --ink-soft: #d9cbc0;
+  --line: rgb(255 253 251 / 0.2); --accent: #ece4dc; --accent-hover: #ddd1c5; --on-accent: #2f221d;
+  --law: #b39686; --on-law: #1f1613; --error: #e39a86; --ok: #a9c48f; --scrim: rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.0625rem/1.55 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--law); outline-offset: 2px; }
+
+.top {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.top-row {
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 0.7rem 16px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.brand { display: flex; align-items: center; gap: 0.45rem; font-weight: 600; letter-spacing: -0.01em; }
+.brand svg { width: 18px; height: 20px; fill: currentColor; }
+.save-state { margin-left: auto; font-size: 0.8125rem; color: var(--ink-soft); white-space: nowrap; }
+.lang-btn {
+  border: 1px solid var(--line); background: transparent; border-radius: 999px;
+  min-height: 2.25rem; padding: 0 0.9rem; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.08em; cursor: pointer;
+}
+.progress { height: 4px; background: var(--sunk); }
+.progress > span { display: block; height: 100%; background: var(--ink); width: 0; transition: width 0.3s ease; }
+
+main {
+  max-width: 36rem;
+  margin: 0 auto;
+  padding-inline: 16px;
+  padding-block: 1.75rem 9rem;
+}
+.eyebrow {
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft);
+  display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+}
+h1 {
+  font: 400 clamp(1.9rem, 7vw, 2.6rem)/1.08 var(--display);
+  margin: 0.65rem 0 0;
+  text-wrap: balance;
+}
+.help { color: var(--ink-soft); margin: 0.75rem 0 0; max-width: 60ch; }
+.stack { display: grid; gap: 1rem; margin-top: 1.5rem; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.badge.law { background: var(--law); color: var(--on-law); }
+.badge.opt { border: 1px solid var(--line); color: var(--ink-soft); }
+
+.guide-btn {
+  display: flex; align-items: center; gap: 0.75rem; width: 100%;
+  border: 1px solid var(--line); background: var(--surface); border-radius: var(--r-m);
+  padding: 0.9rem 1rem; text-align: left; cursor: pointer;
+}
+.guide-btn svg { flex: none; width: 28px; height: 28px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+.guide-btn b { display: block; font-weight: 600; }
+.guide-btn span { display: block; font-size: 0.875rem; color: var(--ink-soft); }
+.guide-btn:hover { border-color: var(--ink); }
+
+label.field { display: grid; gap: 0.4rem; }
+label.field > span { font-size: 0.875rem; font-weight: 600; }
+input[type="text"], input[type="tel"], input[type="email"], input[type="url"], input[type="number"], select, textarea {
+  width: 100%;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--r-s);
+  padding: 0.85rem 1rem;
+  font-size: 1.2rem;
+  min-height: 3.5rem;
+}
+textarea { font-size: 1.05rem; line-height: 1.5; min-height: 7.5rem; resize: vertical; }
+input:focus, select:focus, textarea:focus { border-color: var(--ink); outline: none; }
+input.mono { font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+.error { color: var(--error); font-size: 0.9rem; font-weight: 500; }
+.hint { font-size: 0.875rem; color: var(--ink-soft); }
+
+.samples { display: grid; gap: 0.75rem; margin-top: 1.5rem; }
+.sample {
+  position: relative; display: block; width: 100%; text-align: left; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--surface); border-radius: var(--r-m);
+  padding: 1rem 3rem 1rem 1.1rem; line-height: 1.45;
+}
+.sample small { display: block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 0.3rem; }
+.sample::after {
+  content: ""; position: absolute; right: 1rem; top: 1.05rem; width: 1.25rem; height: 1.25rem;
+  border: 1.5px solid var(--line); border-radius: 50%;
+}
+.sample[aria-pressed="true"] { border-color: var(--ink); border-width: 2px; }
+.sample[aria-pressed="true"]::after { background: var(--ink); border-color: var(--ink); box-shadow: inset 0 0 0 3px var(--surface); }
+.sample.custom { border-style: dashed; }
+.editor { display: grid; gap: 0.5rem; padding: 1rem; border-radius: var(--r-m); background: var(--sunk); }
+.editor > span { font-size: 0.875rem; font-weight: 600; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
+.chip {
+  border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px;
+  min-height: 2.75rem; padding: 0 1rem; cursor: pointer; font-size: 0.98rem;
+}
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.add-row { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.add-row input { min-width: 0; flex: 1; font-size: 1rem; min-height: 3rem; }
+
+.options { display: grid; gap: 0.75rem; margin-top: 1.5rem; }
+
+.hidden-note {
+  margin-top: 1.25rem; padding: 0.9rem 1rem; border-radius: var(--r-s); background: var(--sunk);
+  display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; flex-wrap: wrap;
+}
+.hidden-note p { margin: 0; font-size: 0.95rem; }
+
+.testi { border: 1px solid var(--line); border-radius: var(--r-m); padding: 1rem; display: grid; gap: 0.75rem; background: var(--surface); }
+.testi h3 { margin: 0; font-size: 0.8125rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.check { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.95rem; }
+.check input { width: 1.3rem; height: 1.3rem; margin: 0.1rem 0 0; flex: none; accent-color: var(--ink); }
+
+.bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  padding: 0.75rem 16px calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+.bar-inner { max-width: 36rem; margin: 0 auto; display: grid; gap: 0.5rem; }
+.bar-main { display: flex; gap: 0.6rem; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 3.25rem; padding: 0 1.6rem; border-radius: 999px; cursor: pointer;
+  font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  border: 1.5px solid var(--ink); background: transparent; text-decoration: none;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); flex: 1; }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.icon { padding: 0; width: 3.25rem; flex: none; }
+.btn.icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+.btn.quiet { border-color: var(--line); }
+.linkish {
+  background: none; border: 0; padding: 0.35rem 0; cursor: pointer; font-size: 0.95rem; font-weight: 500;
+  color: var(--ink-soft); text-decoration: underline; text-underline-offset: 3px; justify-self: center;
+}
+
+/* Welcome */
+.hello h1 { font-size: clamp(2.6rem, 11vw, 3.6rem); text-transform: uppercase; line-height: 0.98; }
+.hello ol { list-style: none; padding: 0; margin: 1.75rem 0 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
+.hello li { display: grid; grid-template-columns: 2.2rem 1fr; gap: 0.5rem; padding: 0.9rem 0; border-bottom: 1px solid var(--line); }
+.hello li b { font: 400 1.4rem/1 var(--display); padding-top: 0.15rem; }
+.hello li strong { display: block; }
+.hello li span { color: var(--ink-soft); font-size: 0.95rem; }
+.meta { margin-top: 1.25rem; font-size: 0.95rem; color: var(--ink-soft); }
+
+/* Review */
+.group { margin-top: 2rem; }
+.group h2 { font: 400 1.5rem/1.1 var(--display); margin: 0 0 0.5rem; }
+.rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.rows li { border-bottom: 1px solid var(--line); }
+.row {
+  display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 0.75rem; align-items: start;
+  width: 100%; text-align: left; background: none; border: 0; padding: 0.85rem 0; cursor: pointer;
+}
+.row .k { font-weight: 600; font-size: 0.95rem; }
+.row .v { grid-column: 1 / -1; color: var(--ink-soft); font-size: 0.92rem; min-width: 0; overflow-wrap: anywhere; white-space: pre-line; }
+.pill { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 999px; padding: 0.25rem 0.6rem; white-space: nowrap; }
+.pill.done { color: var(--ok); border: 1px solid currentColor; }
+.pill.hid { color: var(--ink-soft); border: 1px dashed currentColor; }
+.pill.todo { color: var(--ink); background: var(--sunk); }
+.pill.must { background: var(--law); color: var(--on-law); }
+.summary { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.25rem; }
+.export { margin-top: 2.5rem; padding: 1.25rem; border-radius: var(--r-l); background: var(--surface); border: 1px solid var(--line); display: grid; gap: 0.75rem; }
+.export h2 { font: 400 1.5rem/1.1 var(--display); margin: 0; }
+.export p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+.export textarea { font-size: 0.9rem; min-height: 10rem; }
+.export .btns { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* Guide sheet */
+dialog.sheet {
+  border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 40rem; max-height: 88vh;
+  border-radius: var(--r-l) var(--r-l) 0 0; background: var(--surface); color: var(--ink);
+}
+dialog.sheet::backdrop { background: var(--scrim); }
+.sheet-body { padding: 1.5rem 16px calc(1.5rem + env(safe-area-inset-bottom, 0px)); overflow-y: auto; max-height: 88vh; }
+.sheet h2 { font: 400 clamp(1.6rem, 6vw, 2rem)/1.1 var(--display); margin: 0.5rem 0 0; text-wrap: balance; }
+.sheet .why { margin: 0.9rem 0 0; padding: 0.85rem 1rem; border-radius: var(--r-s); background: var(--sunk); font-size: 0.95rem; }
+.sheet h3 { margin: 1.4rem 0 0.4rem; font-size: 0.8125rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.steps { list-style: none; counter-reset: s; margin: 0; padding: 0; display: grid; gap: 0; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 2.1rem 1fr; gap: 0.6rem; padding: 0.75rem 0; border-bottom: 1px solid var(--line); }
+.steps li::before { content: counter(s); font: 400 1.35rem/1.2 var(--display); }
+.steps li p { margin: 0; }
+.steps li .sub { color: var(--ink-soft); font-size: 0.92rem; margin-top: 0.2rem; }
+.links { display: grid; gap: 0.5rem; margin-top: 0.5rem; }
+.links a { display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.8rem 1rem; border-radius: var(--r-s); border: 1px solid var(--line); text-decoration: none; font-weight: 500; }
+.links a::after { content: "↗"; }
+.sheet-close { margin-top: 1.5rem; width: 100%; }
+.grab { width: 3rem; height: 4px; border-radius: 4px; background: var(--line); margin: 0 auto; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--ink); color: var(--bg); padding: 0.6rem 1rem; border-radius: 999px; font-size: 0.9rem; z-index: 20;
+}
+
+@media (min-width: 48rem) {
+  main { padding-block: 3rem 9rem; }
+  dialog.sheet { margin: auto; border-radius: var(--r-l); }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .screen { animation: rise 0.25s ease both; }
+  @keyframes rise { from { opacity: 0.4; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+}
+</style>
+
+<header class="top">
+  <div class="top-row">
+    <span class="brand"><svg viewBox="0 0 22 24" aria-hidden="true"><path d="M0 8.5 9.5 1.8V24H0z M12.5 1.8 22 8.5V24h-9.5z"/></svg>Dave &amp; co</span>
+    <span class="save-state" id="save-state" aria-live="polite"></span>
+    <button class="lang-btn" id="lang-btn" type="button"></button>
+  </div>
+  <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+</header>
+
+<main id="main"></main>
+
+<div class="bar" id="bar"></div>
+
+<dialog class="sheet" id="sheet" aria-labelledby="sheet-title">
+  <div class="sheet-body" id="sheet-body"></div>
+</dialog>
+
+<script>
+(function () {
+"use strict";
+
+/* ---------- Text in both languages ---------- */
+
+var UI = {
+  langBtn: { fr: "EN", en: "FR" },
+  langLabel: { fr: "Switch to English", en: "Passer en français" },
+  savedLocal: { fr: "Enregistré", en: "Saved" },
+  savedCloud: { fr: "Enregistré en ligne", en: "Saved online" },
+  saving: { fr: "Enregistrement…", en: "Saving…" },
+  next: { fr: "Continuer", en: "Continue" },
+  skip: { fr: "Passer pour l'instant", en: "Skip for now" },
+  back: { fr: "Retour", en: "Back" },
+  toReview: { fr: "Voir le résumé", en: "See summary" },
+  backToReview: { fr: "Retour au résumé", en: "Back to summary" },
+  hide: { fr: "Masquer pour l'instant", en: "Hide this for now" },
+  hiddenNote: { fr: "Masqué pour l'instant. Rien ne s'affichera sur le site.", en: "Hidden for now. Nothing will show on the site." },
+  unhide: { fr: "Remplir quand même", en: "Fill it in anyway" },
+  law: { fr: "Exigé par la loi", en: "Required by law" },
+  official: { fr: "Info officielle", en: "Official info" },
+  optional: { fr: "Optionnel", en: "Optional" },
+  guideTitle: { fr: "Guide étape par étape", en: "Step-by-step guide" },
+  guideSub: { fr: "Comment obtenir ce numéro", en: "How to get this number" },
+  guideClose: { fr: "J'ai compris", en: "Got it" },
+  why: { fr: "Pourquoi", en: "Why" },
+  stepsH: { fr: "Les étapes", en: "The steps" },
+  linksH: { fr: "Liens officiels", en: "Official links" },
+  sampleTag: { fr: "Exemple", en: "Sample" },
+  customCard: { fr: "Écrire mon propre texte", en: "Write my own text" },
+  editLabel: { fr: "Votre texte. Vous pouvez le modifier.", en: "Your text. You can change it." },
+  customLabel: { fr: "Écrivez votre texte", en: "Write your text" },
+  translateNote: { fr: "Vous avez écrit votre propre texte. Il sera traduit pour la page en anglais.", en: "You wrote your own text. It will be translated for the French page." },
+  sampleNote: { fr: "Ce texte existe déjà en français et en anglais.", en: "This text is ready in French and in English." },
+  addCity: { fr: "Ajouter une autre ville", en: "Add another city" },
+  add: { fr: "Ajouter", en: "Add" },
+  welcomeStart: { fr: "Commencer", en: "Start" },
+  welcomeResume: { fr: "Continuer où j'étais", en: "Continue where I left off" },
+  welcomeRestart: { fr: "Recommencer du début", en: "Start from the beginning" },
+  copied: { fr: "Réponses copiées", en: "Answers copied" },
+  copyFail: { fr: "Copie impossible. Le texte est sélectionné : copiez-le à la main.", en: "Copy failed. The text is selected: copy it by hand." },
+  question: { fr: "Question", en: "Question" },
+  of: { fr: "sur", en: "of" },
+  invalidPhone: { fr: "Il faut 10 chiffres. Exemple : 450 555-1234.", en: "Use 10 digits. Example: 450 555-1234." },
+  invalidEmail: { fr: "Cette adresse ne semble pas complète. Exemple : info@daveco.ca.", en: "This address looks incomplete. Example: info@daveco.ca." },
+  invalidPostal: { fr: "Format : J4K 1A1.", en: "Format: J4K 1A1." },
+  invalidRbq: { fr: "Il faut 10 chiffres. Format : 1234-5678-01.", en: "Use 10 digits. Format: 1234-5678-01." },
+  invalidNeq: { fr: "Le NEQ a 10 chiffres. Exemple : 1171234567.", en: "The NEQ has 10 digits. Example: 1171234567." },
+  invalidYears: { fr: "Écrivez un nombre. Exemple : 12.", en: "Write a number. Example: 12." },
+  needOneService: { fr: "Choisissez au moins un service.", en: "Pick at least one service." },
+  useMyEmail: { fr: "Utiliser mon courriel", en: "Use my email" },
+  done: { fr: "Rempli", en: "Done" },
+  hidden: { fr: "Masqué", en: "Hidden" },
+  todo: { fr: "À remplir", en: "To fill" },
+  must: { fr: "Obligatoire", en: "Required" },
+  empty: { fr: "Pas encore de réponse", en: "No answer yet" }
+};
+
+/* ---------- Guides for official numbers ---------- */
+
+var GUIDES = {
+  rbq: {
+    title: { fr: "Obtenir votre licence RBQ", en: "Get your RBQ licence" },
+    why: {
+      fr: "La Régie du bâtiment du Québec (RBQ) oblige chaque entrepreneur à afficher son numéro de licence dans toute publicité, y compris son site web et ses réseaux sociaux. Le site ne peut pas être mis en ligne sans ce numéro.",
+      en: "The Régie du bâtiment du Québec (RBQ) requires every contractor to show their licence number in all advertising, including the website and social media. The site cannot go live without this number."
+    },
+    have: {
+      fr: "Vous avez déjà une licence ? Le numéro est sur votre certificat de licence. Vous pouvez aussi le trouver dans le Registre des détenteurs de licence de la RBQ : cherchez le nom de votre entreprise.",
+      en: "Already have a licence? The number is on your licence certificate. You can also find it in the RBQ licence holder register: search for your company name."
+    },
+    steps: [
+      { fr: ["Inscrivez l'entreprise au Registraire des entreprises.", "Vous recevez votre NEQ. Voir le guide du NEQ."], en: ["Register the business with the Registraire des entreprises.", "You get your NEQ. See the NEQ guide."] },
+      { fr: ["Choisissez vos sous-catégories de licence.", "Rénovation de maisons : souvent la 1.2 (petits bâtiments). Maisons neuves : 1.1.1, qui demande aussi l'accréditation GCR. Confirmez avec la RBQ."], en: ["Pick your licence subclasses.", "Home renovation: often 1.2 (small buildings). New homes: 1.1.1, which also needs GCR accreditation. Confirm with the RBQ."] },
+      { fr: ["Nommez un répondant et faites qualifier ses connaissances.", "Examens de la RBQ (administration, sécurité de chantier, gestion de projet, technique) ou une formation reconnue par la RBQ."], en: ["Name a qualifying person (répondant) and get their knowledge recognized.", "RBQ exams (administration, site safety, project management, technical) or an RBQ-recognized training program."] },
+      { fr: ["Obtenez le cautionnement de licence.", "Une garantie financière achetée auprès d'un assureur ou d'une compagnie de cautionnement. La RBQ fixe le montant."], en: ["Get the licence bond (cautionnement).", "A financial guarantee bought from an insurer or bonding company. The RBQ sets the amount."] },
+      { fr: ["Envoyez la demande de licence à la RBQ et payez les frais.", "Les délais de traitement peuvent être longs. Envoyez la demande tôt."], en: ["Send the licence application to the RBQ and pay the fees.", "Processing can take a while. Apply early."] },
+      { fr: ["Recevez votre licence.", "Le numéro a 10 chiffres, au format 1234-5678-01. Revenez l'écrire ici."], en: ["Receive your licence.", "The number has 10 digits, in the format 1234-5678-01. Come back and enter it here."] }
+    ],
+    links: [
+      { fr: "RBQ : toutes les étapes pour obtenir une licence", en: "RBQ: all the steps to get a licence", url: "https://www.rbq.gouv.qc.ca/licence/obtenir-sa-licence/toutes-les-etapes-a-suivre-pour-obtenir-une-licence/" },
+      { fr: "RBQ : afficher votre licence", en: "RBQ: displaying your licence", url: "https://www.rbq.gouv.qc.ca/vous-etes/entrepreneur/vos-obligations/la-licence/afficher-votre-licence/" }
+    ]
+  },
+  neq: {
+    title: { fr: "Trouver ou obtenir votre NEQ", en: "Find or get your NEQ" },
+    why: {
+      fr: "Le NEQ (numéro d'entreprise du Québec) prouve que l'entreprise est inscrite au Registraire des entreprises. L'inscription est obligatoire si vous faites affaire sous un nom autre que votre prénom et nom, comme « Dave & co », ou si l'entreprise est une société par actions (inc.). La RBQ le demande aussi pour la licence.",
+      en: "The NEQ (Québec enterprise number) shows the business is registered with the Registraire des entreprises. Registration is required if you do business under a name other than your own first and last name, like “Dave & co”, or if the business is a corporation (inc.). The RBQ also asks for it for the licence."
+    },
+    have: {
+      fr: "Déjà inscrit ? Le NEQ est sur votre déclaration d'immatriculation et sur les lettres de Revenu Québec. Vous pouvez aussi chercher le nom de l'entreprise dans le Registre des entreprises.",
+      en: "Already registered? The NEQ is on your registration declaration and on Revenu Québec letters. You can also search the company name in the Registre des entreprises."
+    },
+    steps: [
+      { fr: ["Choisissez la forme de l'entreprise.", "Entreprise individuelle (à votre nom) ou société par actions (inc.). Un comptable peut vous aider à choisir."], en: ["Pick the business form.", "Sole proprietorship (in your name) or corporation (inc.). An accountant can help you choose."] },
+      { fr: ["Choisissez le nom.", "La Charte de la langue française demande un nom en français, ou un terme générique en français si le nom contient d'autres langues. Exemple : « Construction Dave & co »."], en: ["Pick the name.", "The Charter of the French language asks for a French name, or a French generic term if the name uses other languages. Example: “Construction Dave & co”."] },
+      { fr: ["Faites la déclaration d'immatriculation en ligne sur Québec.ca et payez les frais.", "Pour une entreprise individuelle : dans les 60 jours après le début des activités. Pour une inc. : l'immatriculation se fait avec la constitution."], en: ["File the registration declaration online on Québec.ca and pay the fees.", "Sole proprietor: within 60 days after you start. Corporation: registration happens when you incorporate."] },
+      { fr: ["Recevez votre NEQ.", "C'est un numéro de 10 chiffres. Revenez l'écrire ici, avec le nom légal exact."], en: ["Receive your NEQ.", "It is a 10-digit number. Come back and enter it here, with the exact legal name."] }
+    ],
+    links: [
+      { fr: "Québec.ca : immatriculer une entreprise individuelle", en: "Québec.ca: register a sole proprietorship", url: "https://www.quebec.ca/entreprises-et-travailleurs-autonomes/demarrer-entreprise/immatriculer-constituer-entreprise/immatriculer-constituer-entreprise-formes-juridiques/personne-physique-entreprise-individuelle" },
+      { fr: "Québec.ca : à propos de l'immatriculation", en: "Québec.ca: about registration", url: "https://www.quebec.ca/entreprises-et-travailleurs-autonomes/demarrer-entreprise/immatriculer-constituer-entreprise/immatriculation-entreprise/a-propos" }
+    ]
+  },
+  gcr: {
+    title: { fr: "Obtenir l'accréditation GCR", en: "Get GCR accreditation" },
+    why: {
+      fr: "Pour construire des maisons neuves visées par le plan de garantie obligatoire, il faut la sous-catégorie de licence RBQ 1.1.1 (ou 1.1.2) et l'accréditation de la Garantie de construction résidentielle (GCR). Cela couvre les maisons unifamiliales, jumelées ou en rangée, les plex et les petits condos.",
+      en: "To build new homes covered by the mandatory warranty plan, you need RBQ licence subclass 1.1.1 (or 1.1.2) and accreditation from the Garantie de construction résidentielle (GCR). This covers detached, semi-detached and row houses, plexes and small condos."
+    },
+    have: {
+      fr: "Déjà accrédité ? Votre nom est dans le répertoire des entreprises accréditées de GCR. Le numéro est sur votre certificat d'accréditation.",
+      en: "Already accredited? Your company is in GCR's directory of accredited companies. The number is on your accreditation certificate."
+    },
+    steps: [
+      { fr: ["Ayez d'abord votre licence RBQ.", "Voir le guide de la licence RBQ."], en: ["Get your RBQ licence first.", "See the RBQ licence guide."] },
+      { fr: ["Demandez l'accréditation à GCR.", "Section « Entrepreneurs » du site de GCR. Préparez vos états financiers et les documents demandés."], en: ["Apply to GCR for accreditation.", "“Entrepreneurs” section of the GCR website. Have your financial statements and requested documents ready."] },
+      { fr: ["Payez les frais et fournissez les garanties demandées.", "GCR étudie votre dossier."], en: ["Pay the fees and provide the guarantees asked for.", "GCR reviews your file."] },
+      { fr: ["Recevez votre certificat d'accréditation.", "Envoyez la preuve à la RBQ avant la date limite qu'elle vous donne. Elle ajoute la sous-catégorie 1.1.1 à votre licence."], en: ["Receive your accreditation certificate.", "Send the proof to the RBQ before the deadline it gives you. It adds subclass 1.1.1 to your licence."] },
+      { fr: ["Pas encore accrédité ?", "On peut retirer « Construction neuve » du site pour l'instant."], en: ["Not accredited yet?", "We can remove “New construction” from the site for now."] }
+    ],
+    links: [
+      { fr: "GCR : section Entrepreneurs", en: "GCR: Contractors section", url: "https://www.garantiegcr.com/fr/entrepreneurs/" },
+      { fr: "GCR : répertoire des entreprises accréditées", en: "GCR: directory of accredited companies", url: "https://www.garantiegcr.com/fr/repertoire-des-entreprises-accreditees/" }
+    ]
+  },
+  law25: {
+    title: { fr: "Responsable de la protection des renseignements personnels", en: "Person in charge of protecting personal information" },
+    why: {
+      fr: "La Loi 25 oblige chaque entreprise à publier sur son site le titre et les coordonnées de la personne responsable des renseignements personnels. Les clients savent ainsi à qui écrire au sujet de leurs informations.",
+      en: "Québec's Law 25 requires every business to publish on its website the title and contact details of the person in charge of personal information. Clients then know who to write to about their information."
+    },
+    have: {
+      fr: "Il n'y a pas de numéro à obtenir. Il faut seulement nommer la personne et donner un courriel.",
+      en: "There is no number to get. You only name the person and give an email."
+    },
+    steps: [
+      { fr: ["Par défaut, c'est vous.", "La loi donne ce rôle à la personne qui a la plus haute autorité : le propriétaire ou le président."], en: ["By default, it is you.", "The law gives this role to the person with the highest authority: the owner or president."] },
+      { fr: ["Vous pouvez donner ce rôle à quelqu'un d'autre.", "Faites-le par écrit (un courriel ou une note signée suffit). Gardez une copie."], en: ["You can give this role to someone else.", "Do it in writing (an email or a signed note is enough). Keep a copy."] },
+      { fr: ["Choisissez un courriel que vous lisez souvent.", "Une adresse générale comme confidentialite@votredomaine.ca est correcte."], en: ["Pick an email you read often.", "A general address like privacy@yourdomain.ca is fine."] },
+      { fr: ["Gardez un registre des incidents.", "Si des informations de clients sont perdues ou volées, notez-le dans un registre. C'est aussi demandé par la Loi 25."], en: ["Keep an incident log.", "If client information is lost or stolen, write it in a log. Law 25 also asks for this."] }
+    ],
+    links: [
+      { fr: "Commission d'accès à l'information : responsabilité des entreprises", en: "Commission d'accès à l'information: business responsibilities", url: "https://www.cai.gouv.qc.ca/protection-renseignements-personnels/information-entreprises-privees/responsable-protection-renseignements-personnels-entreprise" }
+    ]
+  },
+  insurance: {
+    title: { fr: "Obtenir une assurance responsabilité civile", en: "Get liability insurance" },
+    why: {
+      fr: "La licence RBQ demande un cautionnement, pas une assurance responsabilité. Mais beaucoup de clients demandent si vous êtes assuré. Cette assurance paie si vos travaux causent des dommages ou des blessures.",
+      en: "The RBQ licence needs a bond, not liability insurance. But many clients ask if you are insured. This insurance pays if your work causes damage or injury."
+    },
+    have: {
+      fr: "Déjà assuré ? Le nom de l'assureur et le montant sont sur votre police ou votre certificat d'assurance.",
+      en: "Already insured? The insurer name and amount are on your policy or insurance certificate."
+    },
+    steps: [
+      { fr: ["Faites la liste de vos travaux.", "Types de travaux, nombre d'employés, revenu prévu. Le courtier va le demander."], en: ["List your work.", "Types of work, number of employees, expected revenue. The broker will ask."] },
+      { fr: ["Appelez un courtier en assurance de dommages.", "Demandez une « assurance responsabilité civile générale » pour entrepreneur."], en: ["Call a property and casualty insurance broker.", "Ask for “commercial general liability” insurance for a contractor."] },
+      { fr: ["Comparez 2 ou 3 soumissions.", "Beaucoup d'entrepreneurs prennent 2 millions de dollars de protection."], en: ["Compare 2 or 3 quotes.", "Many contractors take 2 million dollars of coverage."] },
+      { fr: ["Gardez le certificat d'assurance.", "Les clients peuvent le demander avant de signer."], en: ["Keep the insurance certificate.", "Clients may ask for it before they sign."] }
+    ],
+    links: [
+      { fr: "Chambre de l'assurance de dommages : trouver un courtier", en: "Chambre de l'assurance de dommages: find a broker", url: "https://www.chad.ca/" }
+    ]
+  },
+  apchq: {
+    title: { fr: "Devenir membre de l'APCHQ", en: "Become an APCHQ member" },
+    why: {
+      fr: "L'APCHQ est une association d'entrepreneurs en habitation. Ce n'est pas exigé par la loi. Être membre peut rassurer les clients.",
+      en: "The APCHQ is a home builders' association. The law does not require it. Being a member can reassure clients."
+    },
+    have: {
+      fr: "Déjà membre ? Le numéro de membre est sur votre carte ou dans votre espace membre.",
+      en: "Already a member? The member number is on your card or in your member account."
+    },
+    steps: [
+      { fr: ["Ayez votre licence RBQ.", "L'APCHQ la demande."], en: ["Have your RBQ licence.", "The APCHQ asks for it."] },
+      { fr: ["Remplissez la demande d'adhésion sur le site de l'APCHQ.", "Choisissez votre région (Rive-Sud)."], en: ["Fill in the membership application on the APCHQ website.", "Pick your region (South Shore)."] },
+      { fr: ["Payez la cotisation annuelle.", ""], en: ["Pay the yearly fee.", ""] },
+      { fr: ["Recevez votre numéro de membre.", "Revenez l'écrire ici."], en: ["Receive your member number.", "Come back and enter it here."] }
+    ],
+    links: [
+      { fr: "APCHQ", en: "APCHQ", url: "https://www.apchq.com/" }
+    ]
+  }
+};
+
+/* ---------- Questions ---------- */
+
+var SECTIONS = {
+  contact: { fr: "Vos coordonnées", en: "Your contact info" },
+  services: { fr: "Vos services", en: "Your services" },
+  trust: { fr: "Confiance", en: "Trust" },
+  legal: { fr: "Obligations légales", en: "Legal requirements" }
+};
+
+var SERVICES = [
+  { id: "interieur", fr: "Rénovation intérieure", en: "Interior renovation" },
+  { id: "cuisine", fr: "Cuisine", en: "Kitchen" },
+  { id: "bain", fr: "Salle de bain", en: "Bathroom" },
+  { id: "soussol", fr: "Sous-sol", en: "Basement" },
+  { id: "agrandissement", fr: "Agrandissement", en: "Addition" },
+  { id: "neuve", fr: "Construction neuve", en: "New construction" }
+];
+
+var SERVICE_SAMPLES = {
+  interieur: [
+    { fr: "Murs, planchers, portes et finitions : on rafraîchit vos pièces sans tout démolir.", en: "Walls, floors, doors and trim: we refresh your rooms without tearing everything out." },
+    { fr: "Du salon à la chambre, on refait vos pièces avec des matériaux durables et une finition propre.", en: "From living room to bedroom, we redo your rooms with lasting materials and a clean finish." },
+    { fr: "On ouvre, on répare et on refait : cloisons, gypse, peinture, planchers et moulures.", en: "We open, repair and rebuild: partitions, drywall, paint, floors and mouldings." },
+    { fr: "Un seul entrepreneur pour toute la pièce. On coordonne les métiers et on vous tient au courant.", en: "One contractor for the whole room. We coordinate the trades and keep you informed." }
+  ],
+  cuisine: [
+    { fr: "Armoires, comptoirs, dosseret et îlot : une cuisine pensée pour votre façon de cuisiner.", en: "Cabinets, counters, backsplash and island: a kitchen planned around the way you cook." },
+    { fr: "On refait votre cuisine du plancher au plafond, avec un plan clair et un prix détaillé avant de commencer.", en: "We redo your kitchen from floor to ceiling, with a clear plan and a detailed price before we start." },
+    { fr: "Rafraîchir ou tout refaire : on vous aide à choisir les bons travaux pour votre budget.", en: "Refresh or full redo: we help you pick the right work for your budget." },
+    { fr: "Plomberie, électricité et finition : on coordonne tous les métiers pour une cuisine prête à utiliser.", en: "Plumbing, electrical and finishing: we coordinate every trade for a kitchen ready to use." }
+  ],
+  bain: [
+    { fr: "Douche en céramique, bain, vanité et ventilation : une salle de bain belle et étanche.", en: "Tiled shower, bathtub, vanity and ventilation: a bathroom that looks good and stays watertight." },
+    { fr: "On remplace votre bain par une douche, ou on refait la pièce au complet.", en: "We replace your tub with a shower, or redo the whole room." },
+    { fr: "L'étanchéité derrière la céramique compte autant que la céramique. On la fait dans les règles.", en: "The waterproofing behind the tile matters as much as the tile. We do it by the book." },
+    { fr: "Un échéancier clair dès le départ, et une maison protégée pendant les travaux.", en: "A clear schedule from day one, and a home kept protected during the work." }
+  ],
+  soussol: [
+    { fr: "Salle familiale, chambre, bureau ou cinéma maison : on fait de votre sous-sol une vraie pièce de vie.", en: "Family room, bedroom, office or home theatre: we turn your basement into a real living space." },
+    { fr: "Isolation, pare-vapeur, gypse et planchers : un sous-sol sec, chaud et confortable.", en: "Insulation, vapour barrier, drywall and floors: a basement that is dry, warm and comfortable." },
+    { fr: "On vérifie d'abord l'humidité et la fondation. Ensuite, on finit le reste.", en: "We check moisture and the foundation first. Then we finish the rest." },
+    { fr: "Plus d'espace sans agrandir : finir le sous-sol est souvent la solution la plus simple.", en: "More space without building out: finishing the basement is often the simplest way." }
+  ],
+  agrandissement: [
+    { fr: "Une pièce de plus, une cuisine plus grande ou un étage de plus : on agrandit votre maison.", en: "One more room, a bigger kitchen or an extra storey: we make your home bigger." },
+    { fr: "Des plans aux permis, jusqu'à la finition : on s'occupe de votre agrandissement du début à la fin.", en: "From plans to permits to finishing: we handle your addition from start to end." },
+    { fr: "Un agrandissement qui s'accorde avec votre maison, dedans comme dehors.", en: "An addition that matches your home, inside and out." },
+    { fr: "On vous aide à faire les demandes de permis auprès de votre ville.", en: "We help you with the permit requests at your city." }
+  ],
+  neuve: [
+    { fr: "Votre maison neuve, construite avec soin, des fondations à la finition.", en: "Your new home, built with care, from foundation to finish." },
+    { fr: "Maison unifamiliale, jumelée ou plex : on construit selon vos plans ou on vous aide à les faire.", en: "Detached, semi-detached or plex: we build to your plans or help you make them." },
+    { fr: "Une seule personne à joindre pour tout le chantier, avec un suivi clair à chaque étape.", en: "One person to reach for the whole job, with clear updates at each step." },
+    { fr: "Construire sur votre terrain : on vous guide du choix des plans jusqu'à la remise des clés.", en: "Building on your lot: we guide you from choosing plans to handing over the keys." }
+  ]
+};
+
+var CITIES = ["Longueuil", "Greenfield Park", "Saint-Hubert", "Brossard", "Saint-Lambert", "Boucherville",
+  "La Prairie", "Candiac", "Saint-Bruno-de-Montarville", "Sainte-Julie", "Varennes", "Chambly",
+  "Carignan", "Saint-Basile-le-Grand", "Beloeil", "Mont-Saint-Hilaire", "Delson", "Saint-Constant",
+  "Châteauguay", "Saint-Jean-sur-Richelieu"];
+
+var Q = [
+  { id: "phone", section: "contact", type: "text", input: "tel", fmt: "phone", required: true,
+    label: { fr: "Quel numéro les clients doivent-ils appeler ?", en: "Which number should clients call?" },
+    help: { fr: "Ce numéro va sur les boutons « Appeler ». Un cellulaire est correct.", en: "This number goes on the “Call” buttons. A cell phone is fine." },
+    placeholder: "450 555-1234", site: { fr: "Haut de page, contact et bouton Appeler", en: "Top bar, contact and Call button" } },
+  { id: "email", section: "contact", type: "text", input: "email", fmt: "email", required: true,
+    label: { fr: "Quelle adresse courriel pour les demandes de soumission ?", en: "Which email for quote requests?" },
+    help: { fr: "Choisissez une adresse que vous lisez chaque jour.", en: "Pick an address you read every day." },
+    placeholder: "info@daveco.ca" },
+  { id: "hours", section: "contact", type: "pick", short: true, hideable: true,
+    label: { fr: "Quand les clients peuvent-ils vous joindre ?", en: "When can clients reach you?" },
+    help: { fr: "Choisissez un horaire. Vous pouvez le modifier.", en: "Pick a schedule. You can change it." },
+    samples: [
+      { fr: "Lundi au vendredi, 7 h à 17 h", en: "Monday to Friday, 7 a.m. to 5 p.m." },
+      { fr: "Lundi au vendredi, 8 h à 18 h. Samedi sur rendez-vous.", en: "Monday to Friday, 8 a.m. to 6 p.m. Saturday by appointment." },
+      { fr: "Lundi au samedi, 7 h à 19 h", en: "Monday to Saturday, 7 a.m. to 7 p.m." },
+      { fr: "Sur rendez-vous, 7 jours sur 7", en: "By appointment, 7 days a week" }
+    ] },
+  { id: "address", section: "contact", type: "fields", hideable: true,
+    label: { fr: "Quelle est l'adresse de l'entreprise ?", en: "What is the business address?" },
+    help: { fr: "Elle aide Google à vous trouver. Vous travaillez de la maison ? Vous pouvez la masquer. Le site montrera seulement la Rive-Sud.", en: "It helps Google find you. Work from home? You can hide it. The site will only show the South Shore." },
+    fields: [
+      { k: "street", label: { fr: "Numéro et rue", en: "Number and street" }, placeholder: "123, rue Principale", auto: "street-address" },
+      { k: "city", label: { fr: "Ville", en: "City" }, placeholder: "Longueuil", auto: "address-level2" },
+      { k: "postal", label: { fr: "Code postal", en: "Postal code" }, placeholder: "J4K 1A1", fmt: "postal", auto: "postal-code" }
+    ] },
+  { id: "cities", section: "contact", type: "multi", options: CITIES, addable: true, required: true,
+    label: { fr: "Dans quelles villes acceptez-vous des travaux ?", en: "Which cities do you work in?" },
+    help: { fr: "Touchez chaque ville. Touchez encore pour l'enlever.", en: "Tap each city. Tap again to remove it." } },
+  { id: "domain", section: "contact", type: "text", input: "url", hideable: true, hideLabel: { fr: "Pas encore de nom de domaine", en: "No domain name yet" },
+    label: { fr: "Avez-vous déjà une adresse pour le site web ?", en: "Do you already have a web address for the site?" },
+    help: { fr: "Le nom de domaine, comme daveco.ca. Pas encore ? Aucun problème, on le choisira plus tard.", en: "The domain name, like daveco.ca. Not yet? No problem, we will pick one later." },
+    placeholder: "daveco.ca" },
+
+  { id: "services", section: "services", type: "multi", fixed: true, required: true,
+    options: SERVICES.map(function (s) { return s.id; }),
+    label: { fr: "Quels services offrez-vous ?", en: "Which services do you offer?" },
+    help: { fr: "Les 6 services sont sur le site en ce moment. Touchez ceux que vous ne faites pas pour les retirer.", en: "All 6 services are on the site now. Tap the ones you do not do to remove them." } }
+].concat(SERVICES.map(function (s) {
+  return { id: "svc-" + s.id, section: "services", type: "pick", required: true, svc: s.id,
+    showIf: function (A) { return hasService(A, s.id); },
+    label: { fr: "Comment décrire votre service « " + s.fr + " » ?", en: "How should we describe your “" + s.en + "” service?" },
+    help: { fr: "Choisissez un texte, puis modifiez-le si vous voulez. Gardez seulement ce qui est vrai pour vous.", en: "Pick a text, then change it if you want. Keep only what is true for you." },
+    samples: SERVICE_SAMPLES[s.id] };
+})).concat([
+  { id: "years", section: "trust", type: "text", input: "numeric", fmt: "years", hideable: true,
+    label: { fr: "Depuis combien d'années faites-vous ce métier ?", en: "How many years have you done this work?" },
+    help: { fr: "Votre expérience à vous, pas l'âge de l'entreprise. Le site dira « 12 ans d'expérience ».", en: "Your own experience, not the age of the company. The site will say “12 years of experience”." },
+    placeholder: "12" },
+  { id: "warranty", section: "trust", type: "pick", short: true, hideable: true,
+    label: { fr: "Quelle garantie offrez-vous sur vos travaux ?", en: "What warranty do you give on your work?" },
+    help: { fr: "Choisissez seulement ce que vos contrats promettent vraiment.", en: "Pick only what your contracts really promise." },
+    samples: [
+      { fr: "Garantie de 1 an sur la main-d'œuvre", en: "1-year warranty on workmanship" },
+      { fr: "Garantie de 2 ans sur la main-d'œuvre", en: "2-year warranty on workmanship" },
+      { fr: "Garantie de 5 ans sur la main-d'œuvre, et garantie du fabricant sur les matériaux", en: "5-year warranty on workmanship, plus the manufacturer's warranty on materials" },
+      { fr: "Garantie écrite sur tous nos travaux, détaillée dans chaque contrat", en: "Written warranty on all our work, detailed in every contract" }
+    ] },
+  { id: "insurance", section: "trust", type: "fields", hideable: true, badge: "opt", guide: "insurance",
+    label: { fr: "Avez-vous une assurance responsabilité civile ?", en: "Do you have liability insurance?" },
+    help: { fr: "Le site dira par exemple « Entreprise assurée : 2 M$ en responsabilité civile ».", en: "The site will say for example “Insured business: $2M liability coverage”." },
+    fields: [
+      { k: "insurer", label: { fr: "Nom de l'assureur", en: "Insurer name" }, placeholder: "Intact, Desjardins…" },
+      { k: "amount", label: { fr: "Montant de la protection", en: "Coverage amount" }, select: ["1 M$", "2 M$", "3 M$", "5 M$"] }
+    ] },
+  { id: "apchq", section: "trust", type: "text", input: "text", hideable: true, badge: "opt", guide: "apchq",
+    hideLabel: { fr: "Je ne suis pas membre", en: "I am not a member" },
+    label: { fr: "Êtes-vous membre de l'APCHQ ?", en: "Are you an APCHQ member?" },
+    help: { fr: "Si oui, écrivez votre numéro de membre. Sinon, on retire cette ligne du site.", en: "If yes, enter your member number. If not, we remove this line from the site." },
+    placeholder: { fr: "Numéro de membre", en: "Member number" } },
+  { id: "reviews", section: "trust", type: "reviews", hideable: true,
+    label: { fr: "Avez-vous des commentaires de vrais clients ?", en: "Do you have comments from real clients?" },
+    help: { fr: "Seulement de vrais clients, avec leur permission. Pas encore ? Masquez la section. On l'ajoutera plus tard.", en: "Only real clients, with their permission. None yet? Hide the section. We will add it later." } },
+  { id: "photos", section: "trust", type: "choice", required: true,
+    label: { fr: "Avez-vous des photos de vos propres projets ?", en: "Do you have photos of your own projects?" },
+    help: { fr: "Le site montre des photos d'exemple pour l'instant. Elles ne viennent pas de vos chantiers.", en: "The site shows sample photos for now. They are not from your jobs." },
+    choices: [
+      { v: "send", fr: "Oui, je vais les envoyer par courriel", en: "Yes, I will send them by email" },
+      { v: "keep", fr: "Pas encore. Garder les photos d'exemple.", en: "Not yet. Keep the sample photos." },
+      { v: "later", fr: "Pas encore. J'en prendrai sur mes prochains chantiers.", en: "Not yet. I will take some on my next jobs." }
+    ] },
+
+  { id: "legalName", section: "legal", type: "text", input: "text", badge: "official", guide: "neq", required: true,
+    label: { fr: "Quel est le nom légal exact de l'entreprise ?", en: "What is the exact legal name of the business?" },
+    help: { fr: "Le nom inscrit au Registraire des entreprises. Il va dans le bas de page.", en: "The name registered with the Registraire des entreprises. It goes in the footer." },
+    placeholder: { fr: "Ex. : Construction Dave & co inc.", en: "E.g. Construction Dave & co inc." } },
+  { id: "neq", section: "legal", type: "text", input: "numeric", fmt: "neq", badge: "official", guide: "neq", required: true,
+    label: { fr: "Quel est votre NEQ ?", en: "What is your NEQ?" },
+    help: { fr: "Le numéro d'entreprise du Québec. Il a 10 chiffres.", en: "Your Québec enterprise number. It has 10 digits." },
+    placeholder: "1171234567" },
+  { id: "rbq", section: "legal", type: "text", input: "numeric", fmt: "rbq", badge: "law", guide: "rbq", required: true,
+    label: { fr: "Quel est votre numéro de licence RBQ ?", en: "What is your RBQ licence number?" },
+    help: { fr: "La loi oblige à l'afficher sur le site. Il apparaîtra en haut de page et dans le bas de page.", en: "The law requires it on the site. It will show at the top and in the footer." },
+    placeholder: "1234-5678-01" },
+  { id: "gcr", section: "legal", type: "choice", badge: "law", guide: "gcr", required: true,
+    showIf: function (A) { return hasService(A, "neuve"); },
+    label: { fr: "Êtes-vous accrédité GCR pour les maisons neuves ?", en: "Are you GCR accredited for new homes?" },
+    help: { fr: "Vous offrez la construction neuve. Pour la plupart des maisons neuves, la loi exige l'accréditation GCR.", en: "You offer new construction. For most new homes, the law requires GCR accreditation." },
+    choices: [
+      { v: "yes", fr: "Oui, je suis accrédité", en: "Yes, I am accredited" },
+      { v: "pending", fr: "C'est en cours", en: "It is in progress" },
+      { v: "no", fr: "Non. Retirer « Construction neuve » du site pour l'instant.", en: "No. Remove “New construction” from the site for now." }
+    ],
+    extra: { when: "yes", k: "number", label: { fr: "Numéro du certificat d'accréditation (si vous l'avez)", en: "Accreditation certificate number (if you have it)" } } },
+  { id: "privacy", section: "legal", type: "fields", badge: "law", guide: "law25", required: true,
+    label: { fr: "Qui s'occupe des renseignements personnels des clients ?", en: "Who looks after clients' personal information?" },
+    help: { fr: "La Loi 25 oblige à publier son titre et un courriel sur le site. Par défaut, c'est vous, le propriétaire.", en: "Law 25 requires the site to show this person's title and an email. By default, it is you, the owner." },
+    fields: [
+      { k: "name", label: { fr: "Nom", en: "Name" }, placeholder: "Dave …", auto: "name" },
+      { k: "title", label: { fr: "Titre", en: "Title" }, placeholder: { fr: "Propriétaire", en: "Owner" } },
+      { k: "email", label: { fr: "Courriel", en: "Email" }, placeholder: "info@daveco.ca", fmt: "email", input: "email", fillFrom: "email" }
+    ] }
+]);
+
+/* ---------- State ---------- */
+
+var KEY = "daveco-questionnaire-v1";
+var S = { lang: "fr", answers: {}, pos: -1, updatedAt: 0 };
+var fromReview = false;
+var db = null, dbRef = null, downloads = null, cloudOk = false;
+
+function L(o) {
+  var s = o == null ? "" : (typeof o === "string" ? o : (o[S.lang] != null ? o[S.lang] : o.fr));
+  // French typography: keep « », ?, !, : and ; on the same line as their word.
+  return S.lang === "fr" ? String(s).replace(/« /g, "« ").replace(/ ([»?!:;])/g, " $1") : s;
+}
+function hasService(A, id) {
+  var a = A.services;
+  if (!a || !Array.isArray(a.value)) return true; // all six are on the site until changed
+  return a.value.indexOf(id) !== -1;
+}
+function visible() { return Q.filter(function (q) { return !q.showIf || q.showIf(S.answers); }); }
+function ans(id) { return S.answers[id] || (S.answers[id] = {}); }
+
+function loadLocal() {
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) { var d = JSON.parse(raw); if (d && d.answers) S = Object.assign(S, d); }
+  } catch (e) {}
+}
+
+var saveTimer = null;
+function save() {
+  S.updatedAt = Date.now();
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  setSaveState(cloudOk ? "saving" : "local");
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(pushCloud, 900);
+}
+function pushCloud() {
+  if (!dbRef) { setSaveState("local"); return; }
+  dbRef.set({ answers: JSON.parse(JSON.stringify(S.answers)), updatedAt: S.updatedAt, lang: S.lang })
+    .then(function () { cloudOk = true; setSaveState("cloud"); })
+    .catch(function () { cloudOk = false; setSaveState("local"); });
+}
+var lastSaveState = "local";
+function setSaveState(s) {
+  lastSaveState = s;
+  var el = document.getElementById("save-state");
+  if (!S.updatedAt) { el.textContent = ""; return; }
+  el.textContent = s === "cloud" ? "✓ " + L(UI.savedCloud) : s === "saving" ? L(UI.saving) : "✓ " + L(UI.savedLocal);
+}
+
+function connect() {
+  if (!window.claude || !window.claude.use) return;
+  window.claude.use("downloads").then(function (d) { downloads = d; if (S.pos === -2) render(); }).catch(function () {});
+  window.claude.use("db").then(function (d) {
+    if (!d) return;
+    db = d;
+    dbRef = db.doc("answers/main");
+    return dbRef.get().then(function (snap) {
+      var data = snap.exists ? snap.data() : null;
+      if (data && data.answers && (data.updatedAt || 0) > (S.updatedAt || 0)) {
+        S.answers = JSON.parse(JSON.stringify(data.answers));
+        S.updatedAt = data.updatedAt;
+        try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+        render();
+      } else if (S.updatedAt) {
+        pushCloud();
+      }
+      cloudOk = true;
+      setSaveState("cloud");
+    });
+  }).catch(function () {});
+}
+
+/* ---------- Formats and checks ---------- */
+
+function digits(s) { return String(s || "").replace(/\D/g, ""); }
+var FMT = {
+  phone: function (v) {
+    var d = digits(v); if (d.length === 11 && d[0] === "1") d = d.slice(1);
+    if (d.length !== 10) return v;
+    return d.slice(0, 3) + " " + d.slice(3, 6) + "-" + d.slice(6);
+  },
+  rbq: function (v) {
+    var d = digits(v).slice(0, 10), o = d.slice(0, 4);
+    if (d.length > 4) o += "-" + d.slice(4, 8);
+    if (d.length > 8) o += "-" + d.slice(8);
+    return o;
+  },
+  postal: function (v) {
+    var c = String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+    return c.length > 3 ? c.slice(0, 3) + " " + c.slice(3) : c;
+  },
+  neq: function (v) { return digits(v).slice(0, 10); },
+  years: function (v) { return digits(v).slice(0, 2); }
+};
+var CHECK = {
+  phone: function (v) { var d = digits(v); return d.length === 10 || (d.length === 11 && d[0] === "1") ? "" : L(UI.invalidPhone); },
+  email: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? "" : L(UI.invalidEmail); },
+  postal: function (v) { return /^[A-Z]\d[A-Z] \d[A-Z]\d$/.test(v) ? "" : L(UI.invalidPostal); },
+  rbq: function (v) { return digits(v).length === 10 ? "" : L(UI.invalidRbq); },
+  neq: function (v) { return digits(v).length === 10 ? "" : L(UI.invalidNeq); },
+  years: function (v) { return /^\d{1,2}$/.test(v) ? "" : L(UI.invalidYears); }
+};
+
+/* Is the question answered? */
+function filled(q) {
+  var a = S.answers[q.id];
+  if (q.type === "multi" && q.fixed && (!a || a.value == null)) return true; // default: all services
+  if (!a) return false;
+  if (a.hidden) return false;
+  var v = a.value;
+  if (q.type === "multi") return Array.isArray(v) && v.length > 0;
+  if (q.type === "pick") return !!(a.text && a.text.trim());
+  if (q.type === "fields") return !!v && q.fields.some(function (f) { return v[f.k] && String(v[f.k]).trim(); });
+  if (q.type === "reviews") return Array.isArray(v) && v.some(function (r) { return r && r.text && r.text.trim(); });
+  return v != null && String(v).trim() !== "";
+}
+function status(q) {
+  var a = S.answers[q.id];
+  if (a && a.hidden) return "hid";
+  if (filled(q)) return "done";
+  return q.badge === "law" ? "must" : "todo";
+}
+
+/* Problems that block "Continue" (wrong format only; empty is allowed). */
+function problems(q) {
+  var a = S.answers[q.id] || {}, errs = {};
+  if (a.hidden) return errs;
+  if (q.type === "text" && q.fmt && CHECK[q.fmt] && a.value && String(a.value).trim()) {
+    var e = CHECK[q.fmt](String(a.value)); if (e) errs._ = e;
+  }
+  if (q.type === "fields") {
+    q.fields.forEach(function (f) {
+      var v = a.value && a.value[f.k];
+      if (f.fmt && v && String(v).trim()) { var e2 = CHECK[f.fmt](String(v)); if (e2) errs[f.k] = e2; }
+    });
+  }
+  if (q.type === "multi" && q.fixed && Array.isArray(a.value) && a.value.length === 0) errs._ = L(UI.needOneService);
+  return errs;
+}
+
+/* ---------- Rendering helpers ---------- */
+
+function h(tag, attrs, kids) {
+  var el = document.createElement(tag);
+  if (attrs) Object.keys(attrs).forEach(function (k) {
+    var v = attrs[k];
+    if (v == null || v === false) return;
+    if (k === "text") el.textContent = v;
+    else if (k === "html") el.innerHTML = v;
+    else if (k.slice(0, 2) === "on") el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  });
+  (kids || []).forEach(function (c) { if (c != null) el.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+  return el;
+}
+var ICON = {
+  back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  guide: '<svg viewBox="0 0 28 28" aria-hidden="true"><rect x="5" y="3.5" width="18" height="21" rx="2.5"/><path d="M9.5 9.5h9M9.5 14h9M9.5 18.5h5"/></svg>'
+};
+function toast(msg) {
+  var t = h("div", { class: "toast", role: "status", text: msg });
+  document.body.appendChild(t);
+  setTimeout(function () { t.remove(); }, 2200);
+}
+
+/* ---------- Screens ---------- */
+
+var main = document.getElementById("main");
+var bar = document.getElementById("bar");
+
+function render() {
+  document.documentElement.lang = S.lang === "fr" ? "fr-CA" : "en-CA";
+  var lb = document.getElementById("lang-btn");
+  lb.textContent = L(UI.langBtn);
+  lb.setAttribute("aria-label", L(UI.langLabel));
+  setSaveState(lastSaveState);
+  main.innerHTML = "";
+  bar.innerHTML = "";
+  var vis = visible();
+  if (S.pos >= vis.length) S.pos = -2;
+  var prog = S.pos === -1 ? 0 : S.pos === -2 ? 100 : Math.round((S.pos / vis.length) * 100);
+  document.getElementById("progress").style.width = prog + "%";
+  if (S.pos === -1) return renderWelcome(vis);
+  if (S.pos === -2) return renderReview(vis);
+  renderQuestion(vis[S.pos], vis);
+}
+
+function renderWelcome(vis) {
+  var started = Object.keys(S.answers).length > 0;
+  var done = vis.filter(function (q) { var s = status(q); return s === "done" || s === "hid"; }).length;
+  var steps = S.lang === "fr" ? [
+    ["Une question par écran", "Les infos simples d'abord : téléphone, courriel, villes."],
+    ["Des textes déjà écrits", "Pour chaque texte du site, choisissez parmi 4 exemples. Vous pouvez les modifier."],
+    ["Un guide pour les numéros officiels", "Licence RBQ, NEQ, Loi 25 : un bouton explique comment les obtenir."],
+    ["« Masquer pour l'instant »", "Pas prêt pour une info optionnelle ? Masquez-la. On la retire du site."]
+  ] : [
+    ["One question per screen", "Simple facts first: phone, email, cities."],
+    ["Texts already written", "For each text on the site, pick from 4 samples. You can change them."],
+    ["A guide for official numbers", "RBQ licence, NEQ, Law 25: a button explains how to get them."],
+    ["“Hide this for now”", "Not ready with an optional detail? Hide it. We take it off the site."]
+  ];
+  var wrap = h("section", { class: "screen hello" }, [
+    h("p", { class: "eyebrow", text: S.lang === "fr" ? "Questionnaire du site web" : "Website questionnaire" }),
+    h("h1", { text: S.lang === "fr" ? "Remplissons votre site" : "Let's fill your site" }),
+    h("p", { class: "help", text: S.lang === "fr"
+      ? "Vos réponses remplacent les trous du site de Dave & co. Comptez environ 15 minutes. Vos réponses sont enregistrées à chaque étape : vous pouvez arrêter et revenir."
+      : "Your answers fill the gaps in the Dave & co website. It takes about 15 minutes. Your answers save at every step: you can stop and come back." }),
+    h("ol", null, steps.map(function (s, i) {
+      return h("li", null, [h("b", { text: String(i + 1) }), h("div", null, [h("strong", { text: s[0] }), h("span", { text: s[1] })])]);
+    })),
+    started ? h("p", { class: "meta", text: (S.lang === "fr" ? "Déjà répondu : " : "Answered so far: ") + done + " / " + vis.length }) : null
+  ]);
+  main.appendChild(wrap);
+  var inner = h("div", { class: "bar-inner" });
+  inner.appendChild(h("div", { class: "bar-main" }, [
+    h("button", { class: "btn primary", type: "button", text: L(started ? UI.welcomeResume : UI.welcomeStart),
+      onclick: function () { S.pos = started ? firstOpen(vis) : 0; save(); render(); scrollTop(); } })
+  ]));
+  if (started) inner.appendChild(h("button", { class: "linkish", type: "button", text: L(UI.welcomeRestart),
+    onclick: function () { S.pos = 0; save(); render(); scrollTop(); } }));
+  bar.appendChild(inner);
+}
+function firstOpen(vis) {
+  for (var i = 0; i < vis.length; i++) { if (!S.answers[vis[i].id]) return i; }
+  return -2;
+}
+
+function renderQuestion(q, vis) {
+  var a = ans(q.id);
+  var secQs = vis.filter(function (x) { return x.section === q.section; });
+  var idx = secQs.indexOf(q) + 1;
+  var badge = q.badge === "law" ? h("span", { class: "badge law", text: L(UI.law) })
+    : q.badge === "official" ? h("span", { class: "badge law", text: L(UI.official) })
+    : q.badge === "opt" || (q.hideable && !q.required) ? h("span", { class: "badge opt", text: L(UI.optional) }) : null;
+  var screen = h("section", { class: "screen" }, [
+    h("p", { class: "eyebrow" }, [
+      h("span", { text: L(SECTIONS[q.section]) + " · " + idx + " " + L(UI.of) + " " + secQs.length }), badge
+    ]),
+    h("h1", { id: "q-title", text: L(q.label) }),
+    h("p", { class: "help", text: L(q.help) })
+  ]);
+  if (q.guide) {
+    screen.appendChild(h("div", { class: "stack" }, [
+      h("button", { class: "guide-btn", type: "button", onclick: function () { openGuide(q.guide); } }, [
+        h("span", { html: ICON.guide }),
+        h("div", null, [h("b", { text: L(UI.guideTitle) }), h("span", { text: L(GUIDES[q.guide].title) })])
+      ])
+    ]));
+  }
+  if (a.hidden) {
+    screen.appendChild(h("div", { class: "hidden-note" }, [
+      h("p", { text: L(UI.hiddenNote) }),
+      h("button", { class: "btn quiet", type: "button", text: L(UI.unhide), onclick: function () { a.hidden = false; save(); render(); } })
+    ]));
+  } else {
+    var body = BUILD[q.type](q, a);
+    screen.appendChild(body);
+  }
+  var err = h("p", { class: "error", id: "q-error", role: "alert" });
+  screen.appendChild(err);
+  main.appendChild(screen);
+
+  // Action bar
+  var inner = h("div", { class: "bar-inner" });
+  var nextBtn = h("button", { class: "btn primary", type: "button", id: "next-btn",
+    onclick: function () {
+      var errs = problems(q);
+      if (Object.keys(errs).length) { showErrors(errs); return; }
+      go(+1);
+    } });
+  function label() { nextBtn.textContent = filled(q) || a.hidden ? L(fromReview ? UI.backToReview : UI.next) : L(UI.skip); }
+  label();
+  refreshNext = label;
+  inner.appendChild(h("div", { class: "bar-main" }, [
+    h("button", { class: "btn icon quiet", type: "button", "aria-label": L(UI.back), html: ICON.back, onclick: function () { go(-1); } }),
+    nextBtn
+  ]));
+  if (q.hideable && !a.hidden) {
+    inner.appendChild(h("button", { class: "linkish", type: "button", text: L(q.hideLabel || UI.hide),
+      onclick: function () { a.hidden = true; save(); go(+1); } }));
+  }
+  bar.appendChild(inner);
+
+  var first = main.querySelector("input, textarea");
+  if (first && window.matchMedia("(min-width: 48rem)").matches) first.focus({ preventScroll: true });
+}
+var refreshNext = function () {};
+
+function showErrors(errs) {
+  document.getElementById("q-error").textContent = errs._ || "";
+  Object.keys(errs).forEach(function (k) {
+    var el = document.getElementById("err-" + k);
+    if (el) el.textContent = errs[k];
+  });
+  var bad = main.querySelector("[aria-invalid='true'], input, textarea");
+  if (bad) bad.focus();
+}
+
+function go(dir) {
+  var vis = visible();
+  if (fromReview && dir > 0) { fromReview = false; S.pos = -2; }
+  else {
+    S.pos += dir;
+    if (S.pos < -1) S.pos = -1;
+    if (S.pos >= vis.length) S.pos = -2;
+  }
+  save(); render(); scrollTop();
+}
+function scrollTop() { window.scrollTo(0, 0); }
+
+function textInput(opts) {
+  var el = h(opts.multiline ? "textarea" : "input", {
+    id: opts.id, type: opts.multiline ? null : (opts.input === "email" ? "email" : opts.input === "tel" ? "tel" : "text"),
+    inputmode: opts.input === "numeric" ? "numeric" : opts.input === "tel" ? "tel" : opts.input === "email" ? "email" : opts.input === "url" ? "url" : null,
+    autocomplete: opts.auto || (opts.input === "tel" ? "tel" : opts.input === "email" ? "email" : "off"),
+    autocapitalize: opts.input === "email" || opts.input === "url" ? "off" : null,
+    spellcheck: opts.input === "email" || opts.input === "url" || opts.fmt ? "false" : null,
+    class: opts.fmt === "rbq" || opts.fmt === "neq" || opts.fmt === "phone" ? "mono" : null,
+    placeholder: L(opts.placeholder) || null,
+    "aria-describedby": opts.describedBy || null
+  });
+  el.value = opts.value || "";
+  el.addEventListener("input", function () {
+    if (opts.fmt === "rbq" || opts.fmt === "postal" || opts.fmt === "neq" || opts.fmt === "years") {
+      var f = FMT[opts.fmt](el.value);
+      if (f !== el.value) el.value = f;
+    }
+    opts.onChange(el.value);
+    var e = document.getElementById(opts.errId || "q-error"); if (e) e.textContent = "";
+  });
+  el.addEventListener("blur", function () {
+    if (opts.fmt === "phone") { el.value = FMT.phone(el.value); opts.onChange(el.value); }
+  });
+  el.addEventListener("keydown", function (ev) {
+    if (ev.key === "Enter" && !opts.multiline) { ev.preventDefault(); document.getElementById("next-btn").click(); }
+  });
+  return el;
+}
+
+var BUILD = {
+  text: function (q, a) {
+    return h("div", { class: "stack" }, [
+      textInput({ id: "f-" + q.id, input: q.input, fmt: q.fmt, placeholder: q.placeholder, value: a.value,
+        describedBy: "q-error", onChange: function (v) { a.value = v; save(); refreshNext(); } })
+    ]);
+  },
+
+  fields: function (q, a) {
+    a.value = a.value || {};
+    return h("div", { class: "stack" }, q.fields.map(function (f) {
+      var ctl;
+      if (f.select) {
+        ctl = h("select", { id: "f-" + q.id + "-" + f.k }, [h("option", { value: "", text: "—" })].concat(
+          f.select.map(function (o) { return h("option", { value: o, text: o }); })));
+        ctl.value = a.value[f.k] || "";
+        ctl.addEventListener("change", function () { a.value[f.k] = ctl.value; save(); refreshNext(); });
+      } else {
+        ctl = textInput({ id: "f-" + q.id + "-" + f.k, input: f.input, fmt: f.fmt, placeholder: f.placeholder, auto: f.auto,
+          value: a.value[f.k], errId: "err-" + f.k, describedBy: "err-" + f.k,
+          onChange: function (v) { a.value[f.k] = v; save(); refreshNext(); } });
+      }
+      var kids = [h("span", { text: L(f.label) }), ctl, h("span", { class: "error", id: "err-" + f.k })];
+      if (f.fillFrom && S.answers[f.fillFrom] && S.answers[f.fillFrom].value) {
+        var src = S.answers[f.fillFrom].value;
+        kids.push(h("button", { class: "linkish", type: "button", style: "justify-self:start",
+          text: L(UI.useMyEmail) + " (" + src + ")",
+          onclick: function () { ctl.value = src; a.value[f.k] = src; save(); refreshNext(); } }));
+      }
+      return h("label", { class: "field" }, kids);
+    }));
+  },
+
+  pick: function (q, a) {
+    var wrap = h("div", { class: "samples", role: "group", "aria-labelledby": "q-title" });
+    var editorHost = h("div");
+    function draw() {
+      wrap.innerHTML = "";
+      q.samples.forEach(function (s, i) {
+        var on = a.choice === i;
+        wrap.appendChild(h("button", { class: "sample", type: "button", "aria-pressed": on ? "true" : "false",
+          onclick: function () {
+            a.choice = i; a.text = L(s); a.lang = S.lang; a.edited = false;
+            a.fr = s.fr; a.en = s.en;
+            save(); draw(); refreshNext();
+          } }, [h("small", { text: L(UI.sampleTag) + " " + (i + 1) }), L(s)]));
+      });
+      wrap.appendChild(h("button", { class: "sample custom", type: "button", "aria-pressed": a.choice === "custom" ? "true" : "false",
+        onclick: function () { if (a.choice !== "custom") { a.choice = "custom"; a.text = a.text || ""; a.edited = true; a.lang = S.lang; a.fr = a.en = null; } save(); draw(); refreshNext(); var t = document.getElementById("edit-" + q.id); if (t) t.focus(); } },
+        [L(UI.customCard)]));
+      drawEditor();
+    }
+    function drawEditor() {
+      editorHost.innerHTML = "";
+      if (a.choice == null) return;
+      var ta = h("textarea", { id: "edit-" + q.id, rows: q.short ? 2 : 4 });
+      if (q.short) ta.style.minHeight = "4.5rem";
+      ta.value = a.text || "";
+      var note = h("span", { class: "hint", text: a.edited ? L(UI.translateNote) : L(UI.sampleNote) });
+      ta.addEventListener("input", function () {
+        a.text = ta.value; a.lang = S.lang;
+        var s = typeof a.choice === "number" ? q.samples[a.choice] : null;
+        a.edited = !s || ta.value !== L(s);
+        if (a.edited) { a.fr = a.en = null; } else { a.fr = s.fr; a.en = s.en; }
+        note.textContent = a.edited ? L(UI.translateNote) : L(UI.sampleNote);
+        save(); refreshNext();
+      });
+      editorHost.appendChild(h("label", { class: "editor" }, [
+        h("span", { text: a.choice === "custom" ? L(UI.customLabel) : L(UI.editLabel) }), ta, note
+      ]));
+    }
+    draw();
+    return h("div", { class: "stack" }, [wrap, editorHost]);
+  },
+
+  multi: function (q, a) {
+    if (q.fixed && !Array.isArray(a.value)) a.value = q.options.slice();
+    if (!Array.isArray(a.value)) a.value = [];
+    var wrap = h("div", { class: "chips", role: "group", "aria-labelledby": "q-title" });
+    var opts = q.options.slice();
+    a.value.forEach(function (v) { if (opts.indexOf(v) === -1) opts.push(v); });
+    function name(v) {
+      if (q.fixed) { var s = SERVICES.filter(function (x) { return x.id === v; })[0]; return s ? L(s) : v; }
+      return v;
+    }
+    function draw() {
+      wrap.innerHTML = "";
+      opts.forEach(function (v) {
+        var on = a.value.indexOf(v) !== -1;
+        wrap.appendChild(h("button", { class: "chip", type: "button", "aria-pressed": on ? "true" : "false", text: (on ? "✓ " : "") + name(v),
+          onclick: function () {
+            if (on) a.value = a.value.filter(function (x) { return x !== v; }); else a.value.push(v);
+            save(); draw(); refreshNext(); document.getElementById("q-error").textContent = "";
+          } }));
+      });
+    }
+    draw();
+    var kids = [wrap];
+    if (q.addable) {
+      var inp = h("input", { type: "text", id: "add-" + q.id, placeholder: L(UI.addCity), autocomplete: "off", "aria-label": L(UI.addCity) });
+      function add() {
+        var v = inp.value.trim(); if (!v) return;
+        if (opts.indexOf(v) === -1) opts.push(v);
+        if (a.value.indexOf(v) === -1) a.value.push(v);
+        inp.value = ""; save(); draw(); refreshNext();
+      }
+      inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); add(); } });
+      kids.push(h("div", { class: "add-row" }, [inp, h("button", { class: "btn quiet", type: "button", text: L(UI.add), onclick: add })]));
+    }
+    return h("div", null, kids);
+  },
+
+  choice: function (q, a) {
+    var wrap = h("div", { class: "options", role: "radiogroup", "aria-labelledby": "q-title" });
+    var extraHost = h("div");
+    function draw() {
+      wrap.innerHTML = "";
+      q.choices.forEach(function (c) {
+        var on = a.value === c.v;
+        wrap.appendChild(h("button", { class: "sample", type: "button", role: "radio", "aria-checked": on ? "true" : "false", "aria-pressed": on ? "true" : "false", text: L(c),
+          onclick: function () { a.value = c.v; save(); draw(); refreshNext(); } }));
+      });
+      extraHost.innerHTML = "";
+      if (q.extra && a.value === q.extra.when) {
+        a.extra = a.extra || {};
+        extraHost.appendChild(h("label", { class: "field" }, [
+          h("span", { text: L(q.extra.label) }),
+          textInput({ id: "f-" + q.id + "-extra", value: a.extra[q.extra.k], onChange: function (v) { a.extra[q.extra.k] = v; save(); } })
+        ]));
+      }
+    }
+    draw();
+    return h("div", { class: "stack" }, [wrap, extraHost]);
+  },
+
+  reviews: function (q, a) {
+    if (!Array.isArray(a.value)) a.value = [{}, {}, {}];
+    var tpl = S.lang === "fr"
+      ? "Bonjour [prénom], merci encore de nous avoir confié vos travaux. Accepteriez-vous qu'on publie quelques mots de votre part sur notre site web, avec votre prénom et votre ville ? Deux ou trois phrases suffisent. Merci ! Dave"
+      : "Hi [first name], thanks again for trusting us with your project. Would you let us post a few words from you on our website, with your first name and city? Two or three sentences is plenty. Thank you! Dave";
+    var kids = a.value.map(function (r, i) {
+      return h("div", { class: "testi" }, [
+        h("h3", { text: (S.lang === "fr" ? "Commentaire " : "Comment ") + (i + 1) }),
+        h("label", { class: "field" }, [h("span", { text: S.lang === "fr" ? "Ce que le client a dit" : "What the client said" }),
+          (function () { var t = h("textarea", { id: "rev-" + i + "-text", rows: 3 }); t.value = r.text || "";
+            t.addEventListener("input", function () { r.text = t.value; save(); refreshNext(); }); return t; })()]),
+        h("label", { class: "field" }, [h("span", { text: S.lang === "fr" ? "Prénom et ville" : "First name and city" }),
+          textInput({ id: "rev-" + i + "-who", placeholder: S.lang === "fr" ? "Julie, Brossard" : "Julie, Brossard", value: r.who, onChange: function (v) { r.who = v; save(); } })]),
+        h("label", { class: "check" }, [
+          (function () { var c = h("input", { type: "checkbox", id: "rev-" + i + "-ok" }); c.checked = !!r.ok;
+            c.addEventListener("change", function () { r.ok = c.checked; save(); }); return c; })(),
+          h("span", { text: S.lang === "fr" ? "Le client m'a donné la permission de le publier." : "The client gave me permission to post it." })
+        ])
+      ]);
+    });
+    var tplBox = h("textarea", { id: "rev-template", rows: 5, readonly: true });
+    tplBox.value = tpl;
+    kids.unshift(h("div", { class: "editor" }, [
+      h("span", { text: S.lang === "fr" ? "Message à envoyer à un client pour demander un commentaire" : "Message to send a client to ask for a comment" }),
+      tplBox,
+      h("button", { class: "btn quiet", type: "button", text: S.lang === "fr" ? "Copier le message" : "Copy the message",
+        onclick: function () { copyText(tpl, tplBox, S.lang === "fr" ? "Message copié" : "Message copied"); } })
+    ]));
+    return h("div", { class: "stack" }, kids);
+  }
+};
+
+/* ---------- Guide sheet ---------- */
+
+var sheet = document.getElementById("sheet");
+function openGuide(key) {
+  var g = GUIDES[key], b = document.getElementById("sheet-body");
+  b.innerHTML = "";
+  b.appendChild(h("div", { class: "grab", "aria-hidden": "true" }));
+  b.appendChild(h("p", { class: "eyebrow", style: "margin-top:1rem", text: L(UI.guideTitle) }));
+  b.appendChild(h("h2", { id: "sheet-title", text: L(g.title) }));
+  b.appendChild(h("p", { class: "why" }, [h("strong", { text: L(UI.why) + ". " }), L(g.why)]));
+  b.appendChild(h("p", { class: "help", text: L(g.have) }));
+  b.appendChild(h("h3", { text: L(UI.stepsH) }));
+  b.appendChild(h("ol", { class: "steps" }, g.steps.map(function (s) {
+    var t = s[S.lang] || s.fr;
+    return h("li", null, [h("div", null, [h("p", { text: t[0] }), t[1] ? h("p", { class: "sub", text: t[1] }) : null])]);
+  })));
+  b.appendChild(h("h3", { text: L(UI.linksH) }));
+  b.appendChild(h("div", { class: "links" }, g.links.map(function (l) {
+    return h("a", { href: l.url, target: "_blank", rel: "noopener" }, [h("span", { text: L(l) })]);
+  })));
+  b.appendChild(h("button", { class: "btn primary sheet-close", type: "button", text: L(UI.guideClose), onclick: function () { sheet.close(); } }));
+  if (sheet.showModal) sheet.showModal(); else sheet.setAttribute("open", "");
+  b.scrollTop = 0;
+}
+sheet.addEventListener("click", function (e) { if (e.target === sheet) sheet.close(); });
+
+/* ---------- Review and export ---------- */
+
+function valueText(q, lang) {
+  var a = S.answers[q.id] || {};
+  var LL = function (o) { return o == null ? "" : typeof o === "string" ? o : o[lang] || o.fr; };
+  if (a.hidden) return lang === "fr" ? "(masqué pour l'instant)" : "(hidden for now)";
+  if (!filled(q)) return "";
+  var v = a.value;
+  switch (q.type) {
+    case "multi": {
+      var list = Array.isArray(v) ? v : q.options;
+      return list.map(function (x) {
+        if (!q.fixed) return x;
+        var s = SERVICES.filter(function (y) { return y.id === x; })[0]; return s ? LL(s) : x;
+      }).join(", ");
+    }
+    case "pick": return a.edited ? a.text : LL({ fr: a.fr, en: a.en }) || a.text;
+    case "fields": return q.fields.map(function (f) { return v[f.k] ? LL(f.label) + " : " + v[f.k] : null; }).filter(Boolean).join("\n");
+    case "choice": {
+      var c = q.choices.filter(function (x) { return x.v === v; })[0];
+      var t = c ? LL(c) : v;
+      if (q.extra && a.extra && a.extra[q.extra.k]) t += "\n" + LL(q.extra.label) + " : " + a.extra[q.extra.k];
+      return t;
+    }
+    case "reviews": return v.filter(function (r) { return r.text && r.text.trim(); }).map(function (r) {
+      return "« " + r.text.trim() + " » " + (r.who || "") + (r.ok ? "" : (lang === "fr" ? " [permission à confirmer]" : " [permission to confirm]"));
+    }).join("\n");
+    default: return String(v);
+  }
+}
+
+function exportText() {
+  var lines = ["DAVE & CO — " + (S.lang === "fr" ? "Réponses du questionnaire" : "Questionnaire answers"),
+    new Date(S.updatedAt || Date.now()).toLocaleString(S.lang === "fr" ? "fr-CA" : "en-CA"), ""];
+  var vis = visible(), last = null;
+  vis.forEach(function (q) {
+    if (q.section !== last) { lines.push("", "## " + L(SECTIONS[q.section])); last = q.section; }
+    var v = valueText(q, S.lang);
+    lines.push("- " + L(q.label));
+    lines.push("  " + (v ? v.replace(/\n/g, "\n  ") : "[" + L(UI.empty) + "]"));
+    var a = S.answers[q.id];
+    if (q.type === "pick" && a && a.edited && a.text) lines.push("  " + (S.lang === "fr" ? "(texte personnalisé, à traduire)" : "(custom text, to translate)"));
+  });
+  return lines.join("\n");
+}
+function exportJson() {
+  var out = { app: "daveco-questionnaire", version: 1, updatedAt: S.updatedAt, answers: {} };
+  visible().forEach(function (q) {
+    var a = S.answers[q.id] || {};
+    out.answers[q.id] = { status: status(q), fr: valueText(q, "fr"), en: valueText(q, "en"), raw: a };
+  });
+  return JSON.stringify(out, null, 2);
+}
+
+function copyText(text, box, okMsg) {
+  function fallback() { if (box) { box.focus(); box.select(); } toast(L(UI.copyFail)); }
+  try {
+    navigator.clipboard.writeText(text).then(function () { toast(okMsg || L(UI.copied)); }, fallback);
+  } catch (e) { fallback(); }
+}
+
+function renderReview(vis) {
+  var counts = { done: 0, hid: 0, todo: 0, must: 0 };
+  vis.forEach(function (q) { counts[status(q)]++; });
+  var screen = h("section", { class: "screen" }, [
+    h("p", { class: "eyebrow", text: S.lang === "fr" ? "Résumé" : "Summary" }),
+    h("h1", { text: S.lang === "fr" ? "Vos réponses" : "Your answers" }),
+    h("p", { class: "help", text: S.lang === "fr"
+      ? "Touchez une ligne pour la modifier. Les réponses sont enregistrées."
+      : "Tap a row to change it. Your answers are saved." }),
+    h("div", { class: "summary" }, [
+      h("span", { class: "pill done", text: counts.done + " " + L(UI.done) }),
+      counts.hid ? h("span", { class: "pill hid", text: counts.hid + " " + L(UI.hidden) }) : null,
+      counts.todo ? h("span", { class: "pill todo", text: counts.todo + " " + L(UI.todo) }) : null,
+      counts.must ? h("span", { class: "pill must", text: counts.must + " " + L(UI.must) }) : null
+    ])
+  ]);
+  var last = null, list = null;
+  vis.forEach(function (q, i) {
+    if (q.section !== last) {
+      last = q.section; list = h("ul", { class: "rows" });
+      screen.appendChild(h("div", { class: "group" }, [h("h2", { text: L(SECTIONS[q.section]) }), list]));
+    }
+    var st = status(q), v = valueText(q, S.lang);
+    var pillTxt = { done: UI.done, hid: UI.hidden, todo: UI.todo, must: UI.must }[st];
+    list.appendChild(h("li", null, [h("button", { class: "row", type: "button",
+      onclick: function () { fromReview = true; S.pos = i; save(); render(); scrollTop(); } }, [
+      h("span", { class: "k", text: L(q.label) }),
+      h("span", { class: "pill " + st, text: L(pillTxt) }),
+      h("span", { class: "v", text: v || L(UI.empty) })
+    ])]));
+  });
+
+  var txt = exportText();
+  var box = h("textarea", { id: "export-text", readonly: true, rows: 8 });
+  box.value = txt;
+  var btns = h("div", { class: "btns" }, [
+    h("button", { class: "btn primary", type: "button", text: S.lang === "fr" ? "Copier les réponses" : "Copy the answers",
+      onclick: function () { copyText(exportText(), box); } })
+  ]);
+  if (downloads) {
+    btns.appendChild(h("button", { class: "btn quiet", type: "button", text: S.lang === "fr" ? "Enregistrer un fichier" : "Save a file",
+      onclick: function () { downloads.save({ filename: "dave-co-reponses.json", data: exportJson() }).catch(function () {}); } }));
+  }
+  screen.appendChild(h("div", { class: "export" }, [
+    h("h2", { text: S.lang === "fr" ? "Envoyer vos réponses" : "Send your answers" }),
+    h("p", { text: cloudOk
+      ? (S.lang === "fr" ? "Vos réponses sont déjà enregistrées en ligne. Vous pouvez aussi les copier et les envoyer par courriel." : "Your answers are already saved online. You can also copy them and send them by email.")
+      : (S.lang === "fr" ? "Copiez vos réponses et collez-les dans un courriel à la personne qui fait votre site." : "Copy your answers and paste them in an email to the person building your site.") }),
+    box, btns
+  ]));
+  main.appendChild(screen);
+
+  var inner = h("div", { class: "bar-inner" }, [h("div", { class: "bar-main" }, [
+    h("button", { class: "btn icon quiet", type: "button", "aria-label": L(UI.back), html: ICON.back,
+      onclick: function () { S.pos = visible().length - 1; save(); render(); scrollTop(); } }),
+    h("button", { class: "btn primary", type: "button", text: S.lang === "fr" ? "Copier les réponses" : "Copy the answers",
+      onclick: function () { copyText(exportText(), box); } })
+  ])]);
+  bar.appendChild(inner);
+}
+
+/* ---------- Start ---------- */
+
+document.getElementById("lang-btn").addEventListener("click", function () {
+  S.lang = S.lang === "fr" ? "en" : "fr";
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  render();
+});
+
+loadLocal();
+if (S.pos >= 0 || S.pos === -2) { /* resume on the same screen */ } else { S.pos = -1; }
+render();
+connect();
+})();
+</script>
