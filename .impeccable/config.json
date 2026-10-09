@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "{index.html,en/index.html}"
+        ],
+        "createdAt": "2026-10-09T17:29:01.931Z",
+        "reason": "Owner pinned a warm taupe/sand reference image (RANTY) as the visual direction"
+      }
+    ]
+  }
+}
