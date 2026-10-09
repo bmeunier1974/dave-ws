@@ -327,6 +327,11 @@ var UI = {
   welcomeStart: { fr: "Commencer", en: "Start" },
   welcomeResume: { fr: "Continuer où j'étais", en: "Continue where I left off" },
   welcomeRestart: { fr: "Recommencer du début", en: "Start from the beginning" },
+  erase: { fr: "Effacer toutes les réponses", en: "Erase all answers" },
+  eraseAsk: { fr: "Effacer toutes les réponses ? On ne peut pas les récupérer.", en: "Erase all answers? They cannot be brought back." },
+  eraseYes: { fr: "Tout effacer", en: "Erase all" },
+  cancel: { fr: "Annuler", en: "Cancel" },
+  erased: { fr: "Réponses effacées", en: "Answers erased" },
   copied: { fr: "Réponses copiées", en: "Answers copied" },
   copyFail: { fr: "Copie impossible. Le texte est sélectionné : copiez-le à la main.", en: "Copy failed. The text is selected: copy it by hand." },
   question: { fr: "Question", en: "Question" },
@@ -480,7 +485,7 @@ var GUIDES = {
 /* ---------- Questions ---------- */
 
 var SECTIONS = {
-  contact: { fr: "Vos coordonnées", en: "Your contact info" },
+  contact: { fr: "Votre entreprise", en: "Your business" },
   services: { fr: "Vos services", en: "Your services" },
   trust: { fr: "Confiance", en: "Trust" },
   legal: { fr: "Obligations légales", en: "Legal requirements" }
@@ -540,6 +545,10 @@ var CITIES = ["Longueuil", "Greenfield Park", "Saint-Hubert", "Brossard", "Saint
   "Châteauguay", "Saint-Jean-sur-Richelieu"];
 
 var Q = [
+  { id: "bizName", section: "contact", type: "text", input: "text", required: true, def: "Dave & co",
+    label: { fr: "Quel nom doit apparaître sur le site ?", en: "What name should the website show?" },
+    help: { fr: "C'est le nom que les clients voient. On a déjà mis « Dave & co ». Changez-le seulement si besoin. Le nom légal vient plus tard, dans la partie légale.", en: "This is the name clients see. We already put in \u201cDave & co\u201d. Change it only if needed. The legal name comes later, in the legal part." },
+    placeholder: "Dave & co" },
   { id: "phone", section: "contact", type: "text", input: "tel", fmt: "phone", required: true,
     label: { fr: "Quel numéro les clients doivent-ils appeler ?", en: "Which number should clients call?" },
     help: { fr: "Ce numéro va sur les boutons « Appeler ». Un cellulaire est correct.", en: "This number goes on the “Call” buttons. A cell phone is fine." },
@@ -656,7 +665,7 @@ var Q = [
 /* ---------- State ---------- */
 
 var KEY = "daveco-questionnaire-v1";
-var S = { lang: "fr", answers: {}, pos: -1, updatedAt: 0 };
+var S = { lang: "en", answers: {}, pos: -1, updatedAt: 0 };
 var fromReview = false;
 var db = null, dbRef = null, downloads = null, cloudOk = false;
 
@@ -760,6 +769,7 @@ var CHECK = {
 function filled(q) {
   var a = S.answers[q.id];
   if (q.type === "multi" && q.fixed && (!a || a.value == null)) return true; // default: all services
+  if (q.def && (!a || a.value == null) && !(a && a.hidden)) return true; // default: prefilled value
   if (!a) return false;
   if (a.hidden) return false;
   var v = a.value;
@@ -874,6 +884,26 @@ function renderWelcome(vis) {
   if (started) inner.appendChild(h("button", { class: "linkish", type: "button", text: L(UI.welcomeRestart),
     onclick: function () { S.pos = 0; save(); render(); scrollTop(); } }));
   bar.appendChild(inner);
+  if (started) {
+    // Erase everything, with a confirm step built into the page.
+    var confirmBox = h("div", { class: "hidden-note", hidden: true }, [
+      h("p", { text: L(UI.eraseAsk) }),
+      h("div", { class: "btns", style: "display:flex;gap:0.5rem;flex-wrap:wrap" }, [
+        h("button", { class: "btn quiet", type: "button", text: L(UI.cancel), onclick: function () { confirmBox.hidden = true; } }),
+        h("button", { class: "btn primary", type: "button", text: L(UI.eraseYes), onclick: eraseAll })
+      ])
+    ]);
+    wrap.appendChild(h("button", { class: "linkish", type: "button", style: "margin-top:1rem", text: L(UI.erase),
+      onclick: function () { confirmBox.hidden = false; } }));
+    wrap.appendChild(confirmBox);
+  }
+}
+function eraseAll() {
+  S.answers = {}; S.pos = -1; S.updatedAt = 0;
+  try { localStorage.removeItem(KEY); } catch (e) {}
+  if (dbRef) dbRef.set({ answers: {}, updatedAt: Date.now(), lang: S.lang }).catch(function () {});
+  lastSaveState = "local";
+  render(); scrollTop(); toast(L(UI.erased));
 }
 function firstOpen(vis) {
   for (var i = 0; i < vis.length; i++) { if (!S.answers[vis[i].id]) return i; }
@@ -995,7 +1025,7 @@ function textInput(opts) {
 var BUILD = {
   text: function (q, a) {
     return h("div", { class: "stack" }, [
-      textInput({ id: "f-" + q.id, input: q.input, fmt: q.fmt, placeholder: q.placeholder, value: a.value,
+      textInput({ id: "f-" + q.id, input: q.input, fmt: q.fmt, placeholder: q.placeholder, value: a.value != null ? a.value : q.def,
         describedBy: "q-error", onChange: function (v) { a.value = v; save(); refreshNext(); } })
     ]);
   },
@@ -1192,7 +1222,7 @@ function valueText(q, lang) {
   var LL = function (o) { return o == null ? "" : typeof o === "string" ? o : o[lang] || o.fr; };
   if (a.hidden) return lang === "fr" ? "(masqué pour l'instant)" : "(hidden for now)";
   if (!filled(q)) return "";
-  var v = a.value;
+  var v = a.value != null ? a.value : q.def;
   switch (q.type) {
     case "multi": {
       var list = Array.isArray(v) ? v : q.options;
