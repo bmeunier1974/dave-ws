@@ -229,6 +229,8 @@ input.mono { font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
 .export h2 { font: 400 1.5rem/1.1 var(--display); margin: 0; }
 .export p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
 .export textarea { font-size: 0.9rem; min-height: 10rem; }
+.send-to { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; padding: 0.75rem 1rem; border-radius: var(--r-s); background: var(--sunk); }
+.send-addr { font-weight: 600; font-size: 1.05rem; user-select: all; overflow-wrap: anywhere; min-width: 0; flex: 1; }
 .export .btns { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
 /* Guide sheet */
@@ -665,6 +667,7 @@ var Q = [
 /* ---------- State ---------- */
 
 var KEY = "daveco-questionnaire-v1";
+var SEND_TO = "bmeunier1974@gmail.com"; // where Dave sends his answers
 var S = { lang: "en", answers: {}, pos: -1, updatedAt: 0 };
 var fromReview = false;
 var db = null, dbRef = null, downloads = null, cloudOk = false;
@@ -1248,6 +1251,7 @@ function valueText(q, lang) {
 
 function exportText() {
   var lines = ["DAVE & CO — " + (S.lang === "fr" ? "Réponses du questionnaire" : "Questionnaire answers"),
+    (S.lang === "fr" ? "À envoyer à : " : "Send to: ") + SEND_TO,
     new Date(S.updatedAt || Date.now()).toLocaleString(S.lang === "fr" ? "fr-CA" : "en-CA"), ""];
   var vis = visible(), last = null;
   vis.forEach(function (q) {
@@ -1323,7 +1327,12 @@ function renderReview(vis) {
     h("h2", { text: S.lang === "fr" ? "Envoyer vos réponses" : "Send your answers" }),
     h("p", { text: cloudOk
       ? (S.lang === "fr" ? "Vos réponses sont déjà enregistrées en ligne. Vous pouvez aussi les copier et les envoyer par courriel." : "Your answers are already saved online. You can also copy them and send them by email.")
-      : (S.lang === "fr" ? "Copiez vos réponses et collez-les dans un courriel à la personne qui fait votre site." : "Copy your answers and paste them in an email to the person building your site.") }),
+      : (S.lang === "fr" ? "1. Touchez « Copier les réponses ». 2. Collez-les dans un courriel. 3. Envoyez le courriel à cette adresse :" : "1. Tap \u201cCopy the answers\u201d. 2. Paste them in an email. 3. Send the email to this address:") }),
+    h("div", { class: "send-to" }, [
+      h("span", { class: "send-addr", text: SEND_TO }),
+      h("button", { class: "btn quiet", type: "button", text: S.lang === "fr" ? "Copier l'adresse" : "Copy address",
+        onclick: function (e) { copyText(SEND_TO, null, S.lang === "fr" ? "Adresse copiée" : "Address copied"); } })
+    ]),
     box, btns
   ]));
   main.appendChild(screen);
