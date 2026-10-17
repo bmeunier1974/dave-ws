@@ -16,7 +16,7 @@ Homeowners on the South Shore of Montreal (Longueuil, Brossard, Greenfield Park 
 
 ## Product Purpose
 
-One-page site for Dave & co, a new construction and renovation contractor. It tells who Dave & co is, what they do, where they work, and how to get a free quote. Success: the visitor calls or emails for a quote.
+One-page site for Habitations KJA, a new construction and renovation contractor. It tells who Habitations KJA is, what they do, where they work, and how to get a free quote. Success: the visitor calls or emails for a quote.
 
 ## Positioning
 
@@ -32,7 +32,7 @@ Renovation first (kitchen, bathroom, basement, interior), with extensions and ne
 
 ## Brand Commitments
 
-- Name: "Dave & co". No logo yet.
+- Name: "Habitations KJA". No logo yet.
 - Visual reference given by the owner: a modern home-builder landing page (big serif display headline, warm taupe and brown, landscape photo hero, floating rounded cards). Binding as the visual reference.
 
 ## Evidence on Hand

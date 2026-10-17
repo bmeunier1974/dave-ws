@@ -1,5 +1,5 @@
 ---
-name: Dave & co
+name: Habitations KJA
 description: Warm taupe showroom world for a South Shore construction and renovation contractor.
 colors:
   espresso: "#2f221d"
@@ -134,7 +134,7 @@ components:
     padding: "clamp(1.75rem, 3vw, 2.5rem)"
 ---
 
-# Design System: Dave & co
+# Design System: Habitations KJA
 
 ## Overview
 

@@ -1,4 +1,4 @@
-# Photo sources (TEMPORARY stock photos, replace with Dave's real projects)
+# Photo sources (TEMPORARY stock photos, replace with the company's real projects)
 All from Unsplash, Unsplash License (free commercial use, no attribution required).
 
 - img/hero-salon.webp — https://unsplash.com/photos/Hnec2oEbbxk

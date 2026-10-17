@@ -1,6 +1,6 @@
-<title>Questionnaire Dave &amp; co</title>
+<title>Questionnaire Habitations KJA</title>
 <!--
-  Questionnaire to fill the Dave & co website (index.html, en/index.html).
+  Questionnaire to fill the Habitations KJA website (index.html, en/index.html).
   One question per screen. Answers save at each step:
   - always in this browser (localStorage),
   - and in the artifact database (doc "answers/main") when published
@@ -276,7 +276,7 @@ dialog.sheet::backdrop { background: var(--scrim); }
 
 <header class="top">
   <div class="top-row">
-    <span class="brand"><svg viewBox="0 0 22 24" aria-hidden="true"><path d="M0 8.5 9.5 1.8V24H0z M12.5 1.8 22 8.5V24h-9.5z"/></svg>Dave &amp; co</span>
+    <span class="brand"><svg viewBox="0 0 22 24" aria-hidden="true"><path d="M0 8.5 9.5 1.8V24H0z M12.5 1.8 22 8.5V24h-9.5z"/></svg>Habitations KJA</span>
     <span class="save-state" id="save-state" aria-live="polite"></span>
     <button class="lang-btn" id="lang-btn" type="button"></button>
   </div>
@@ -341,7 +341,7 @@ var UI = {
   question: { fr: "Question", en: "Question" },
   of: { fr: "sur", en: "of" },
   invalidPhone: { fr: "Il faut 10 chiffres. Exemple : 450 555-1234.", en: "Use 10 digits. Example: 450 555-1234." },
-  invalidEmail: { fr: "Cette adresse ne semble pas complète. Exemple : info@daveco.ca.", en: "This address looks incomplete. Example: info@daveco.ca." },
+  invalidEmail: { fr: "Cette adresse ne semble pas complète. Exemple : info@habitationskja.ca.", en: "This address looks incomplete. Example: info@habitationskja.ca." },
   invalidPostal: { fr: "Format : J4K 1A1.", en: "Format: J4K 1A1." },
   invalidRbq: { fr: "Il faut 10 chiffres. Format : 1234-5678-01.", en: "Use 10 digits. Format: 1234-5678-01." },
   invalidNeq: { fr: "Le NEQ a 10 chiffres. Exemple : 1171234567.", en: "The NEQ has 10 digits. Example: 1171234567." },
@@ -384,8 +384,8 @@ var GUIDES = {
   neq: {
     title: { fr: "Trouver ou obtenir votre NEQ", en: "Find or get your NEQ" },
     why: {
-      fr: "Le NEQ (numéro d'entreprise du Québec) prouve que l'entreprise est inscrite au Registraire des entreprises. L'inscription est obligatoire si vous faites affaire sous un nom autre que votre prénom et nom, comme « Dave & co », ou si l'entreprise est une société par actions (inc.). La RBQ le demande aussi pour la licence.",
-      en: "The NEQ (Québec enterprise number) shows the business is registered with the Registraire des entreprises. Registration is required if you do business under a name other than your own first and last name, like “Dave & co”, or if the business is a corporation (inc.). The RBQ also asks for it for the licence."
+      fr: "Le NEQ (numéro d'entreprise du Québec) prouve que l'entreprise est inscrite au Registraire des entreprises. L'inscription est obligatoire si vous faites affaire sous un nom autre que votre prénom et nom, comme « Habitations KJA », ou si l'entreprise est une société par actions (inc.). La RBQ le demande aussi pour la licence.",
+      en: "The NEQ (Québec enterprise number) shows the business is registered with the Registraire des entreprises. Registration is required if you do business under a name other than your own first and last name, like “Habitations KJA”, or if the business is a corporation (inc.). The RBQ also asks for it for the licence."
     },
     have: {
       fr: "Déjà inscrit ? Le NEQ est sur votre déclaration d'immatriculation et sur les lettres de Revenu Québec. Vous pouvez aussi chercher le nom de l'entreprise dans le Registre des entreprises.",
@@ -393,7 +393,7 @@ var GUIDES = {
     },
     steps: [
       { fr: ["Choisissez la forme de l'entreprise.", "Entreprise individuelle (à votre nom) ou société par actions (inc.). Un comptable peut vous aider à choisir."], en: ["Pick the business form.", "Sole proprietorship (in your name) or corporation (inc.). An accountant can help you choose."] },
-      { fr: ["Choisissez le nom.", "La Charte de la langue française demande un nom en français, ou un terme générique en français si le nom contient d'autres langues. Exemple : « Construction Dave & co »."], en: ["Pick the name.", "The Charter of the French language asks for a French name, or a French generic term if the name uses other languages. Example: “Construction Dave & co”."] },
+      { fr: ["Choisissez le nom.", "La Charte de la langue française demande un nom en français, ou un terme générique en français si le nom contient d'autres langues. Exemple : « Habitations KJA »."], en: ["Pick the name.", "The Charter of the French language asks for a French name, or a French generic term if the name uses other languages. Example: “Habitations KJA”."] },
       { fr: ["Faites la déclaration d'immatriculation en ligne sur Québec.ca et payez les frais.", "Pour une entreprise individuelle : dans les 60 jours après le début des activités. Pour une inc. : l'immatriculation se fait avec la constitution."], en: ["File the registration declaration online on Québec.ca and pay the fees.", "Sole proprietor: within 60 days after you start. Corporation: registration happens when you incorporate."] },
       { fr: ["Recevez votre NEQ.", "C'est un numéro de 10 chiffres. Revenez l'écrire ici, avec le nom légal exact."], en: ["Receive your NEQ.", "It is a 10-digit number. Come back and enter it here, with the exact legal name."] }
     ],
@@ -549,10 +549,10 @@ var CITIES = ["Longueuil", "Greenfield Park", "Saint-Hubert", "Brossard", "Saint
   "Châteauguay", "Saint-Jean-sur-Richelieu"];
 
 var Q = [
-  { id: "bizName", section: "contact", type: "text", input: "text", required: true, def: "Dave & co",
+  { id: "bizName", section: "contact", type: "text", input: "text", required: true, def: "Habitations KJA",
     label: { fr: "Quel nom doit apparaître sur le site ?", en: "What name should the website show?" },
-    help: { fr: "C'est le nom que les clients voient. On a déjà mis « Dave & co ». Changez-le seulement si besoin. Le nom légal vient plus tard, dans la partie légale.", en: "This is the name clients see. We already put in \u201cDave & co\u201d. Change it only if needed. The legal name comes later, in the legal part." },
-    placeholder: "Dave & co" },
+    help: { fr: "C'est le nom que les clients voient. On a déjà mis « Habitations KJA ». Changez-le seulement si besoin. Le nom légal vient plus tard, dans la partie légale.", en: "This is the name clients see. We already put in \u201cHabitations KJA\u201d. Change it only if needed. The legal name comes later, in the legal part." },
+    placeholder: "Habitations KJA" },
   { id: "phone", section: "contact", type: "text", input: "tel", fmt: "phone", required: true,
     label: { fr: "Quel numéro les clients doivent-ils appeler ?", en: "Which number should clients call?" },
     help: { fr: "Ce numéro va sur les boutons « Appeler ». Un cellulaire est correct.", en: "This number goes on the “Call” buttons. A cell phone is fine." },
@@ -560,7 +560,7 @@ var Q = [
   { id: "email", section: "contact", type: "text", input: "email", fmt: "email", required: true,
     label: { fr: "Quelle adresse courriel pour les demandes de soumission ?", en: "Which email for quote requests?" },
     help: { fr: "Choisissez une adresse que vous lisez chaque jour.", en: "Pick an address you read every day." },
-    placeholder: "info@daveco.ca" },
+    placeholder: "info@habitationskja.ca" },
   { id: "hours", section: "contact", type: "pick", short: true, hideable: true,
     label: { fr: "Quand les clients peuvent-ils vous joindre ?", en: "When can clients reach you?" },
     help: { fr: "Choisissez un horaire. Vous pouvez le modifier.", en: "Pick a schedule. You can change it." },
@@ -583,8 +583,8 @@ var Q = [
     help: { fr: "Touchez chaque ville. Touchez encore pour l'enlever.", en: "Tap each city. Tap again to remove it." } },
   { id: "domain", section: "contact", type: "text", input: "url", hideable: true, hideLabel: { fr: "Pas encore de nom de domaine", en: "No domain name yet" },
     label: { fr: "Avez-vous déjà une adresse pour le site web ?", en: "Do you already have a web address for the site?" },
-    help: { fr: "Le nom de domaine, comme daveco.ca. Pas encore ? Aucun problème, on le choisira plus tard.", en: "The domain name, like daveco.ca. Not yet? No problem, we will pick one later." },
-    placeholder: "daveco.ca" },
+    help: { fr: "Le nom de domaine, comme habitationskja.ca. Pas encore ? Aucun problème, on le choisira plus tard.", en: "The domain name, like habitationskja.ca. Not yet? No problem, we will pick one later." },
+    placeholder: "habitationskja.ca" },
 
   { id: "services", section: "services", type: "multi", fixed: true, required: true,
     options: SERVICES.map(function (s) { return s.id; }),
@@ -637,7 +637,7 @@ var Q = [
   { id: "legalName", section: "legal", type: "text", input: "text", badge: "official", guide: "neq", required: true,
     label: { fr: "Quel est le nom légal exact de l'entreprise ?", en: "What is the exact legal name of the business?" },
     help: { fr: "Le nom inscrit au Registraire des entreprises. Il va dans le bas de page.", en: "The name registered with the Registraire des entreprises. It goes in the footer." },
-    placeholder: { fr: "Ex. : Construction Dave & co inc.", en: "E.g. Construction Dave & co inc." } },
+    placeholder: { fr: "Ex. : Habitations KJA inc.", en: "E.g. Habitations KJA inc." } },
   { id: "neq", section: "legal", type: "text", input: "numeric", fmt: "neq", badge: "official", guide: "neq", required: true,
     label: { fr: "Quel est votre NEQ ?", en: "What is your NEQ?" },
     help: { fr: "Le numéro d'entreprise du Québec. Il a 10 chiffres.", en: "Your Québec enterprise number. It has 10 digits." },
@@ -660,16 +660,16 @@ var Q = [
     label: { fr: "Qui s'occupe des renseignements personnels des clients ?", en: "Who looks after clients' personal information?" },
     help: { fr: "La Loi 25 oblige à publier son titre et un courriel sur le site. Par défaut, c'est vous, le propriétaire.", en: "Law 25 requires the site to show this person's title and an email. By default, it is you, the owner." },
     fields: [
-      { k: "name", label: { fr: "Nom", en: "Name" }, placeholder: "Dave …", auto: "name" },
+      { k: "name", label: { fr: "Nom", en: "Name" }, placeholder: "Jean Tremblay", auto: "name" },
       { k: "title", label: { fr: "Titre", en: "Title" }, placeholder: { fr: "Propriétaire", en: "Owner" } },
-      { k: "email", label: { fr: "Courriel", en: "Email" }, placeholder: "info@daveco.ca", fmt: "email", input: "email", fillFrom: "email" }
+      { k: "email", label: { fr: "Courriel", en: "Email" }, placeholder: "info@habitationskja.ca", fmt: "email", input: "email", fillFrom: "email" }
     ] }
 ]);
 
 /* ---------- State ---------- */
 
 var KEY = "daveco-questionnaire-v1";
-var SEND_TO = "bmeunier1974@gmail.com"; // where Dave sends his answers
+var SEND_TO = "bmeunier1974@gmail.com"; // where the owner sends the answers
 var S = { lang: "en", answers: {}, pos: -1, updatedAt: 0 };
 var fromReview = false;
 var db = null, dbRef = null, downloads = null, cloudOk = false;
@@ -873,8 +873,8 @@ function renderWelcome(vis) {
     h("p", { class: "eyebrow", text: S.lang === "fr" ? "Questionnaire du site web" : "Website questionnaire" }),
     h("h1", { text: S.lang === "fr" ? "Remplissons votre site" : "Let's fill your site" }),
     h("p", { class: "help", text: S.lang === "fr"
-      ? "Vos réponses remplacent les trous du site de Dave & co. Comptez environ 15 minutes. Vos réponses sont enregistrées à chaque étape : vous pouvez arrêter et revenir."
-      : "Your answers fill the gaps in the Dave & co website. It takes about 15 minutes. Your answers save at every step: you can stop and come back." }),
+      ? "Vos réponses remplacent les trous du site de Habitations KJA. Comptez environ 15 minutes. Vos réponses sont enregistrées à chaque étape : vous pouvez arrêter et revenir."
+      : "Your answers fill the gaps in the Habitations KJA website. It takes about 15 minutes. Your answers save at every step: you can stop and come back." }),
     h("ol", null, steps.map(function (s, i) {
       return h("li", null, [h("b", { text: String(i + 1) }), h("div", null, [h("strong", { text: s[0] }), h("span", { text: s[1] })])]);
     })),
@@ -1165,8 +1165,8 @@ var BUILD = {
   reviews: function (q, a) {
     if (!Array.isArray(a.value)) a.value = [{}, {}, {}];
     var tpl = S.lang === "fr"
-      ? "Bonjour [prénom], merci encore de nous avoir confié vos travaux. Accepteriez-vous qu'on publie quelques mots de votre part sur notre site web, avec votre prénom et votre ville ? Deux ou trois phrases suffisent. Merci ! Dave"
-      : "Hi [first name], thanks again for trusting us with your project. Would you let us post a few words from you on our website, with your first name and city? Two or three sentences is plenty. Thank you! Dave";
+      ? "Bonjour [prénom], merci encore de nous avoir confié vos travaux. Accepteriez-vous qu'on publie quelques mots de votre part sur notre site web, avec votre prénom et votre ville ? Deux ou trois phrases suffisent. Merci ! [votre prénom]"
+      : "Hi [first name], thanks again for trusting us with your project. Would you let us post a few words from you on our website, with your first name and city? Two or three sentences is plenty. Thank you! [your first name]";
     var kids = a.value.map(function (r, i) {
       return h("div", { class: "testi" }, [
         h("h3", { text: (S.lang === "fr" ? "Commentaire " : "Comment ") + (i + 1) }),
@@ -1252,7 +1252,7 @@ function valueText(q, lang) {
 }
 
 function exportText(forMail) {
-  var lines = ["DAVE & CO — " + (S.lang === "fr" ? "Réponses du questionnaire" : "Questionnaire answers"),
+  var lines = ["HABITATIONS KJA — " + (S.lang === "fr" ? "Réponses du questionnaire" : "Questionnaire answers"),
     forMail ? null : (S.lang === "fr" ? "À envoyer à : " : "Send to: ") + SEND_TO,
     new Date(S.updatedAt || Date.now()).toLocaleString(S.lang === "fr" ? "fr-CA" : "en-CA"), ""]
     .filter(function (l) { return l != null; });
@@ -1268,7 +1268,7 @@ function exportText(forMail) {
   return lines.join("\n");
 }
 function exportJson() {
-  var out = { app: "daveco-questionnaire", version: 1, updatedAt: S.updatedAt, answers: {} };
+  var out = { app: "habitationskja-questionnaire", version: 1, updatedAt: S.updatedAt, answers: {} };
   visible().forEach(function (q) {
     var a = S.answers[q.id] || {};
     out.answers[q.id] = { status: status(q), fr: valueText(q, "fr"), en: valueText(q, "en"), raw: a };
@@ -1300,14 +1300,14 @@ function compactValue(q) {
    so a long body changes to the short form. The last line shows the body is complete. */
 var MAIL_MAX = 1900;
 function mailHref() {
-  var name = String((S.answers.bizName && S.answers.bizName.value) || "Dave & co").trim();
+  var name = String((S.answers.bizName && S.answers.bizName.value) || "Habitations KJA").trim();
   var subject = (S.lang === "fr" ? "Réponses du questionnaire - " : "Questionnaire answers - ") + name;
   function link(body) {
     return "mailto:" + SEND_TO + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body.replace(/\n/g, "\r\n"));
   }
   var full = link(exportText(true) + "\n\n[" + (S.lang === "fr" ? "fin des réponses" : "end of answers") + "]");
   if (full.length <= MAIL_MAX) return full;
-  var lines = ["DAVE & CO - questionnaire (short form)"];
+  var lines = ["HABITATIONS KJA - questionnaire (short form)"];
   visible().forEach(function (q) { lines.push(q.id + ": " + compactValue(q)); });
   return link(lines.join("\n") + "\n[end of answers]");
 }
@@ -1364,7 +1364,7 @@ function renderReview(vis) {
   ]);
   if (downloads) {
     btns.appendChild(h("button", { class: "btn quiet", type: "button", text: S.lang === "fr" ? "Enregistrer un fichier" : "Save a file",
-      onclick: function () { downloads.save({ filename: "dave-co-reponses.json", data: exportJson() }).catch(function () {}); } }));
+      onclick: function () { downloads.save({ filename: "habitations-kja-reponses.json", data: exportJson() }).catch(function () {}); } }));
   }
   screen.appendChild(h("div", { class: "export" }, [
     h("h2", { text: S.lang === "fr" ? "Envoyer vos réponses" : "Send your answers" }),
