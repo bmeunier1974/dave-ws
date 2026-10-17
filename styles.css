@@ -8,6 +8,13 @@
 }
 
 @font-face {
+  font-family: "Noto Sans Mandaic";
+  src: url("fonts/noto-sans-mandaic.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
   font-family: "Albert Sans";
   src: url("fonts/albert-sans.woff2") format("woff2");
   font-weight: 100 900;
@@ -200,12 +207,12 @@ p {
 
 .brand {
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.6rem;
-  font-weight: 600;
-  font-size: 1.05rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: "Noto Sans Mandaic", var(--text);
+  font-weight: 400;
+  font-size: 1.3rem;
+  letter-spacing: 0;
   text-decoration: none;
 }
 
@@ -1081,9 +1088,8 @@ p {
 
 @media (max-width: 560px) {
   .brand {
-    gap: 0.4rem;
-    font-size: 0.875rem;
-    letter-spacing: 0.03em;
+    gap: 0.45rem;
+    font-size: 1.1rem;
     white-space: nowrap;
   }
 

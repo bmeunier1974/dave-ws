@@ -247,7 +247,7 @@ Three radii and nothing between them: full pills for anything you press or that 
 - **Internal Padding:** about 1.6-2.5rem.
 
 ### Navigation
-Sits on the hero photo with no bar. Uppercase tracked brand with a two-block house mark; plain links that underline on hover; a hairline-separated "EN" link; the phone as a caps link (call pill on small screens).
+Sits on the hero photo with no bar. Wordmark "Habitations KJA" in Noto Sans Mandaic (regular, mixed case; the owner chose this font for the logo), with a two-block house mark sitting on its baseline; plain links that underline on hover; a hairline-separated "EN" link; the phone as a caps link (call pill on small screens).
 
 ### Room Card (signature)
 Floating white card: room chips, a sans card title, a short ink-soft line and a 3:2 photo frame. Choosing a chip wipes the new photo in from left to right with a clip-path over 0.9s while the image settles from 1.06 to 1 scale; the outgoing photo is held until the wipe ends. Reduced motion makes the swap instant. Each photo carries a caption pill.
