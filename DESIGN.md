@@ -43,6 +43,10 @@ typography:
     fontWeight: 500
     lineHeight: 1.15
     letterSpacing: "-0.015em"
+  wordmark:
+    fontFamily: "Noto Sans Mandaic, Albert Sans, Helvetica Neue, Arial, sans-serif"
+    fontSize: "1.3rem"
+    fontWeight: 400
   body:
     fontFamily: "Albert Sans, Helvetica Neue, Arial, sans-serif"
     fontSize: "1.0625rem"
